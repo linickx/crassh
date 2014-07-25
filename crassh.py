@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-    Version 1.0
+    Version 1.01
     Nick Bettison 
 
     Python script to automate running commands on switches.
@@ -31,14 +31,15 @@ commands = []
 filenames = []
 writeo = True
 printo = False
+bail_timeout = 60
 
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"c:s:hpw")
+    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:hpw")
 except getopt.GetoptError as e:
     print (str(e))
-    print("Usage: %s -s switches.txt -c commands.txt" % sys.argv[0])
+    print("Usage: %s -s switches.txt -c commands.txt -t timeout" % sys.argv[0])
     sys.exit(2)
 
 for o, a in myopts:
@@ -68,16 +69,20 @@ for o, a in myopts:
             thiscmd = fline.strip()
             commands.append(thiscmd)
 
+    if o == '-t':
+        bail_timeout=int(a)
+
     if o == '-h':
         print("\n")
         print("Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
         print(" ")
-        print("Usage: %s -s switches.txt -c commands.txt -p -w" % sys.argv[0])
+        print("Usage: %s -s switches.txt -c commands.txt -p -w -t 45" % sys.argv[0])
         print("   -s is optional, run without -s for a single switch")
         print("   -c is optional, run without -c for a single command")
         print("   -w is optional, use to write the output to a file [Default: True]")
         print("   -p is optional, use to print the output to a file [Default: False]")
         print("   -pw is supported, optional and will print the output to screen and write the output to file!")
+        print("   -t is optional, use to set a command timeout in seconds [Default: 60]")
         print("\n")
         sys.exit()
 
@@ -157,6 +162,11 @@ for switch in switches:
         f = open(filename,'a')
 
     for cmd in commands:
+
+        # Time when the command started, prepare for timeout.
+        now = int(time.time())
+        timeout = now + bail_timeout
+
         # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
         # Create a new receive buffer
         receive_buffer = ""
@@ -169,6 +179,10 @@ for switch in switches:
         while not prompt in receive_buffer:
             # update receive buffer whilst waiting for the prompt to come back
             receive_buffer += remote_conn.recv(1024)
+            now = int(time.time())
+            if now == timeout:
+               print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
+               receive_buffer += "crassh bail: " + prompt
         output = receive_buffer
 
         # Print the output (optional)
