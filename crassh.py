@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 """
-    Version 1.01
     Nick Bettison 
 
     Python script to automate running commands on switches.
@@ -22,6 +21,9 @@ import datetime
 import cStringIO
 import sys, getopt
 import os.path
+
+# Version Control in a Variable 
+crassh_version = "1.01"
 
 # Default Vars
 sfile=''
@@ -83,7 +85,9 @@ for o, a in myopts:
         print("   -p is optional, use to print the output to a file [Default: False]")
         print("   -pw is supported, optional and will print the output to screen and write the output to file!")
         print("   -t is optional, use to set a command timeout in seconds [Default: 60]")
-        print("\n")
+        print(" ")
+        print("Version: %s" % crassh_version)
+        print(" ")
         sys.exit()
 
     if o == '-p':
