@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-    Nick Bettison 
+    Nick Bettison
 
     Python script to automate running commands on switches.
 
@@ -22,8 +22,8 @@ import cStringIO
 import sys, getopt
 import os.path
 
-# Version Control in a Variable 
-crassh_version = "1.01"
+# Version Control in a Variable
+crassh_version = "1.02"
 
 # Default Vars
 sfile=''
@@ -34,6 +34,29 @@ filenames = []
 writeo = True
 printo = False
 bail_timeout = 60
+
+# Functions
+
+# # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
+def send_command(command, prompt = "#", bail_timeout = 60):
+    # Start with empty var
+    output = ""
+    # Time when the command started, prepare for timeout.
+    now = int(time.time())
+    timeout = now + bail_timeout
+
+    # Send the command
+    remote_conn.send(command + "\n")
+
+    while not prompt in output:
+        # update receive buffer whilst waiting for the prompt to come back
+        output += remote_conn.recv(1024)
+        now = int(time.time())
+        if now == timeout:
+           print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
+           output += "crassh bail: " + prompt
+
+    return output
 
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
@@ -95,7 +118,7 @@ for o, a in myopts:
         printo = True
 
     if o == '-w':
-        writeo = True    
+        writeo = True
 
 
 if sfile == "":
@@ -124,30 +147,27 @@ for switch in switches:
     """
 
     remote_conn_pre = paramiko.SSHClient()
-    
+
     remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
+
     remote_conn_pre.connect(switch, username=username, password=password)
-    
+
     remote_conn = remote_conn_pre.invoke_shell()
-    
+
     output = remote_conn.recv(1000)
     #print output
-    
+
     print("Connecting to %s ... " % switch)
-    
+
     remote_conn.send("terminal length 0\n")
-    time.sleep(0.5)    
+    time.sleep(0.5)
     output = remote_conn.recv(1000)
-    
+
     # Clear the Var.
     output = ""
 
-    remote_conn.send("show run | inc hostname \n")
-    while not "#" in output:
-        # update receive buffer
-            output += remote_conn.recv(1024)   
-   
+    output = send_command("show run | inc hostname \n")
+
     for subline in output.splitlines():
         thisrow = subline.split()
         try:
@@ -158,42 +178,27 @@ for switch in switches:
         except IndexError:
             gotdata = 'null'
 
-    # Write the output to a file (optional)
+    # Write the output to a file (optional) - prepare file + filename before CMD loop
     if writeo:
         filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
         filename = hostname + "-" + filetime + ".txt"
         filenames.append(filename)
         f = open(filename,'a')
 
+    # Command Loop
     for cmd in commands:
 
-        # Time when the command started, prepare for timeout.
-        now = int(time.time())
-        timeout = now + bail_timeout
-
-        # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
-        # Create a new receive buffer
-        receive_buffer = ""
         # Send the Command
         print switch + ": Running " + cmd
-        remote_conn.send(cmd + "\n")
-        #time.sleep(2)
-        #output = remote_conn.recv(5000)
-        #print output
-        while not prompt in receive_buffer:
-            # update receive buffer whilst waiting for the prompt to come back
-            receive_buffer += remote_conn.recv(1024)
-            now = int(time.time())
-            if now == timeout:
-               print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
-               receive_buffer += "crassh bail: " + prompt
-        output = receive_buffer
+        output = send_command(cmd, prompt, bail_timeout)
 
         # Print the output (optional)
         if printo:
             print output
         if writeo:
             f.write(output)
+
+    # /end Command Loop
 
     if writeo:
         # Close the File
@@ -209,17 +214,17 @@ for switch in switches:
         print("Switch %s done" % switch)
 
     # Sleep between SSH connections
-    time.sleep(1)    
+    time.sleep(1)
 
 print("\n")
 
 print(" ********************************** ")
 if writeo:
     print("  Output files: ")
-    
+
     for ofile in filenames:
         print("   - %s" % ofile)
-    
+
     print(" ---------------------------------- ")
 print(" Script FINISHED ! ")
 print(" ********************************** ")
