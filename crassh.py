@@ -23,7 +23,7 @@ import sys, getopt
 import os.path
 
 # Version Control in a Variable
-crassh_version = "1.02"
+crassh_version = "1.03"
 
 # Default Vars
 sfile=''
@@ -150,7 +150,7 @@ for switch in switches:
 
     remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    remote_conn_pre.connect(switch, username=username, password=password)
+    remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False)
 
     remote_conn = remote_conn_pre.invoke_shell()
 
