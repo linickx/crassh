@@ -24,7 +24,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.04"
+crassh_version = "1.05"
 
 # Default Vars
 sfile=''
@@ -35,6 +35,7 @@ filenames = []
 writeo = True
 printo = False
 bail_timeout = 60
+play_safe = True
 
 # Functions
 
@@ -78,10 +79,36 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
 
   return output
 
+# Check Commands for dangerous things
+def do_no_harm(command):
+
+  harmful = False
+
+  if re.match("reload", command):
+    harmful = True
+    error = "reload"
+
+  if re.match("wr(.*)\ e", command):
+    harmful = True
+    error = "write erase"
+
+  if re.match("del", command):
+    harmful = True
+    error = "delete"
+
+  if harmful:
+    print ""
+    print("Harmful Command found - Aborting!")
+    print("  \"%s\" tripped the do no harm sensor => %s" % (command, error))
+    print("To force the use of dangerous things, use -X, e.g:")
+    print("  %s -X -s switches.txt -c commands.txt -p -w -t 45" % sys.argv[0])
+    sys.exit()
+
+
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:hpw")
+    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:hpwX")
 except getopt.GetoptError as e:
     print (str(e))
     print("Usage: %s -s switches.txt -c commands.txt -t timeout" % sys.argv[0])
@@ -128,6 +155,7 @@ for o, a in myopts:
         print("   -p is optional, use to print the output to a file [Default: False]")
         print("   -pw is supported, optional and will print the output to screen and write the output to file!")
         print("   -t is optional, use to set a command timeout in seconds [Default: 60]")
+        print("   -X is optional, use to disable \"do no harm\"")
         print(" ")
         print("Version: %s" % crassh_version)
         print(" ")
@@ -140,6 +168,9 @@ for o, a in myopts:
     if o == '-w':
         writeo = True
 
+    if o == '-X':
+      play_safe = False
+
 
 if sfile == "":
     iswitch = raw_input("Enter the switch to connect to: ")
@@ -148,6 +179,13 @@ if sfile == "":
 if cfile == "":
     icommand = raw_input("The switch command you want to run: ")
     commands.append(icommand)
+
+"""
+    Check the commands are safe
+"""
+if play_safe:
+  for command in commands:
+    do_no_harm(command)
 
 """
     Capture Switch log in credentials...
