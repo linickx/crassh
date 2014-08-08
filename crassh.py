@@ -21,9 +21,10 @@ import datetime
 import cStringIO
 import sys, getopt
 import os.path
+import re
 
 # Version Control in a Variable
-crassh_version = "1.03"
+crassh_version = "1.04"
 
 # Default Vars
 sfile=''
@@ -38,25 +39,44 @@ bail_timeout = 60
 # Functions
 
 # # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
-def send_command(command, prompt = "#", bail_timeout = 60):
-    # Start with empty var
-    output = ""
-    # Time when the command started, prepare for timeout.
+def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
+  # Start with empty var & loop
+  output = ""
+  keeplooping = True
+
+  # Regex for either config or enable
+  regex = '^' + hostname + '(.*)#$'
+
+  # Time when the command started, prepare for timeout.
+  now = int(time.time())
+  timeout = now + bail_timeout
+
+  # Send the command
+  remote_conn.send(command + "\n")
+
+  # loop the output
+  while keeplooping:
+
+    # Setup bail timer
     now = int(time.time())
-    timeout = now + bail_timeout
+    if now == timeout:
+      print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
+      output += "crassh bailed on command: " + cmd
+      keeplooping = False
+      break
 
-    # Send the command
-    remote_conn.send(command + "\n")
+    # update receive buffer whilst waiting for the prompt to come back
+    output += remote_conn.recv(2048)
 
-    while not prompt in output:
-        # update receive buffer whilst waiting for the prompt to come back
-        output += remote_conn.recv(1024)
-        now = int(time.time())
-        if now == timeout:
-           print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
-           output += "crassh bail: " + prompt
+    # Search the output for our prompt
+    theoutput = output.splitlines()
+    for lines in theoutput:
+      myregmatch = re.match(regex, lines)
 
-    return output
+      if myregmatch:
+        keeplooping = False
+
+  return output
 
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
@@ -166,7 +186,10 @@ for switch in switches:
     # Clear the Var.
     output = ""
 
-    output = send_command("show run | inc hostname \n")
+    remote_conn.send("show run | inc hostname \n")
+    while not "#" in output:
+        # update receive buffer
+            output += remote_conn.recv(1024)
 
     for subline in output.splitlines():
         thisrow = subline.split()
@@ -190,7 +213,7 @@ for switch in switches:
 
         # Send the Command
         print switch + ": Running " + cmd
-        output = send_command(cmd, prompt, bail_timeout)
+        output = send_command(cmd, hostname, bail_timeout)
 
         # Print the output (optional)
         if printo:
