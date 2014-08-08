@@ -16,6 +16,7 @@
 # Import libs
 import getpass
 import paramiko
+import socket
 import time
 import datetime
 import cStringIO
@@ -24,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.05"
+crassh_version = "1.06"
 
 # Default Vars
 sfile=''
@@ -208,7 +209,18 @@ for switch in switches:
 
     remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False)
+    try:
+      # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
+      remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False)
+    except paramiko.AuthenticationException, e:
+      print "Authentication Error: " ,e
+      sys.exit()
+    except paramiko.SSHException, e:
+      print "SSH Error: " , e
+      sys.exit()
+    except socket.error, e:
+      print "Connection Failed: ", e
+      sys.exit()
 
     remote_conn = remote_conn_pre.invoke_shell()
 
