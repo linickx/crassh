@@ -1,29 +1,17 @@
 # crassh #
 
-Cisco Remote Automation via SSH (or C.R.A.SSH for short) is a python script for automating commands on Cisco devices.
+Cisco Remote Automation via SSH (*or C.R.A.SSH for short*) is a python script for automating commands on Cisco devices.
 
-_Important Note:_ Your credentials need to drop you straight into *enable* mode (priv 15), user mode is currently not supported; this is easily done via TACACS for routers, switches and firewalls. For locally authenticated devices, only routers & switches will work (you need `aaa authorization exec default local`).
+**Important Note:** Your credentials need to drop you straight into *enable* mode (priv 15), user mode is currently not supported; this is easily done via TACACS for routers, switches and firewalls. For locally authenticated devices, only routers & switches will work (you need `aaa authorization exec default local`).
 
 ## Installation ##
 
-You'll need both python and paramiko, once you have both of those just download crassh.py direct from github and save it somewehere ( *like $HOME/bin* )
+You'll need both python and [paramiko](https://github.com/linickx/crassh/blob/master/README.md#aob), once you have both of those just download crassh.py direct from github and save it somewehere ( *like $HOME/bin* ), e.g.
 
-### Paramiko on Linux ###
-
-For debian/ubuntu boxes
-
-   `sudo apt-get install python-paramiko`
-
-For redhat/fedora boxes
-
-   `sudo yum install python-paramiko`
-
-### Paramiko on OS X ###
-
-For apples, get homebrew setup and then
-
-   `brew install python`
-   `pip install paramiko`
+```
+curl -k -o crassh.py https://raw.githubusercontent.com/linickx/crassh/master/crassh.py
+chmod +x crassh.py
+```
 
 ## Usage ##
 
@@ -100,7 +88,36 @@ Let's say you run a command that take a long time, say a million pings, crassh w
 
 ## AoB ##
 
-I've written a [tutorial here](http://www.linickx.com/3980/automating-cisco-commands-with-c-r-a-ssh) on how to use crassh.
+I've written a [tutorial here](http://www.linickx.com/3980/automating-cisco-commands-with-c-r-a-ssh) on how to use crassh. Future [news about crassh can be found here](http://www.linickx.com/tag/crassh).
+
+### Paramiko on Linux ###
+
+For debian/ubuntu boxes
+
+   `sudo apt-get install python-paramiko`
+
+For redhat/fedora boxes
+
+   `sudo yum install python-paramiko`
+
+### Paramiko on OS X ###
+
+For apples, get homebrew setup and then
+
+   `brew install python`  
+   `pip install paramiko`
+
+### Paramiko on Windows ###
+
+For windohz boxes, it's a bit more complicated.
+
+* Download and install [Visual Studio C++ 2008 Express Edition](http://download.microsoft.com/download/A/5/4/A54BADB6-9C3F-478D-8657-93B3FC9FE62D/vcsetup.exe) ( *do not install SQL* )
+* Install [Python 2.7.8 – Select the correct MSI](https://www.python.org/download/releases/2.7.8/) for your architecture
+* Download [get-pip.py](https://bootstrap.pypa.io/get-pip.py) ( *Don’t use Internet Explorer it will mangle the file; _use Firefox_ to download.* )
+* Open an **Administrator** command prompt and run `“c:\Python27\python.exe get-pip.py“`
+* From the same admin prompt, run `“C:\Program Files\Microsoft Visual Studio 9.0\Common7\Tools\vsvars32.bat”` ( *that's for 32bit machines… or for 64bit machines, run* `“C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\Tools\vsvars64.bat“`)
+* From the same admin prompt, run `“c:\Python27\Scripts\pip install paramiko“`
+
 
 ### Disclaimer ###
 
