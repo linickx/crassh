@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.06"
+crassh_version = "1.07"
 
 # Default Vars
 sfile=''
@@ -153,7 +153,7 @@ for o, a in myopts:
         print("   -s is optional, run without -s for a single switch")
         print("   -c is optional, run without -c for a single command")
         print("   -w is optional, use to write the output to a file [Default: True]")
-        print("   -p is optional, use to print the output to a file [Default: False]")
+        print("   -p is optional, use to print the output to the screen [Default: False]")
         print("   -pw is supported, optional and will print the output to screen and write the output to file!")
         print("   -t is optional, use to set a command timeout in seconds [Default: 60]")
         print("   -X is optional, use to disable \"do no harm\"")
@@ -174,12 +174,18 @@ for o, a in myopts:
 
 
 if sfile == "":
+  try:
     iswitch = raw_input("Enter the switch to connect to: ")
     switches.append(iswitch)
+  except:
+    sys.exit()
 
 if cfile == "":
+  try:
     icommand = raw_input("The switch command you want to run: ")
     commands.append(icommand)
+  except:
+    sys.exit()
 
 """
     Check the commands are safe
@@ -192,8 +198,15 @@ if play_safe:
     Capture Switch log in credentials...
 """
 
-username = raw_input("Enter your username: ")
-password = getpass.getpass("Enter your password:")
+try:
+  username = raw_input("Enter your username: ")
+except:
+  sys.exit()
+
+try:
+  password = getpass.getpass("Enter your password:")
+except:
+  sys.exit()
 
 """
     Ready to loop thru switches
