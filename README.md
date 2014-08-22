@@ -2,11 +2,9 @@
 
 Cisco Remote Automation via SSH (*or C.R.A.SSH for short*) is a python script for automating commands on Cisco devices.
 
-**Important Note:** Your credentials need to drop you straight into *enable* mode (priv 15), user mode is currently not supported; this is easily done via TACACS for routers, switches and firewalls. For locally authenticated devices, only routers & switches will work (you need `aaa authorization exec default local`).
-
 ## Installation ##
 
-You'll need both python and [paramiko](https://github.com/linickx/crassh/blob/master/README.md#aob), once you have both of those just download crassh.py direct from github and save it somewehere ( *like $HOME/bin* ), e.g.
+You'll need both python and [paramiko](https://github.com/linickx/crassh/blob/master/README.md#aob), once you have both of those just [download crassh.py direct from github](https://raw.githubusercontent.com/linickx/crassh/master/crassh.py) and save it somewehere ( *like $HOME/bin* ), e.g.
 
 ```
 curl -k -o crassh.py https://raw.githubusercontent.com/linickx/crassh/master/crassh.py
@@ -31,8 +29,9 @@ Usage: ./crassh.py -s switches.txt -c commands.txt -p -w -t 45
    -pw is supported, optional and will print the output to screen and write the output to file!
    -t is optional, use to set a command timeout in seconds [Default: 60]
    -X is optional, use to disable "do no harm"
+   -e is optional, use to submit an enable password
 
-Version: 1.06
+Version: 1.08
 
 linickx:crassh nick$
 ```

@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.07"
+crassh_version = "1.08"
 
 # Default Vars
 sfile=''
@@ -37,6 +37,7 @@ writeo = True
 printo = False
 bail_timeout = 60
 play_safe = True
+enable = False
 
 # Functions
 
@@ -47,7 +48,8 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
   keeplooping = True
 
   # Regex for either config or enable
-  regex = '^' + hostname + '(.*)#$'
+  regex = '^' + hostname + '(.*)(\ )?#'
+  theprompt = re.compile(regex)
 
   # Time when the command started, prepare for timeout.
   now = int(time.time())
@@ -73,7 +75,7 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
     # Search the output for our prompt
     theoutput = output.splitlines()
     for lines in theoutput:
-      myregmatch = re.match(regex, lines)
+      myregmatch = theprompt.search(lines)
 
       if myregmatch:
         keeplooping = False
@@ -109,7 +111,7 @@ def do_no_harm(command):
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:hpwX")
+    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:hpwXe")
 except getopt.GetoptError as e:
     print (str(e))
     print("Usage: %s -s switches.txt -c commands.txt -t timeout" % sys.argv[0])
@@ -149,7 +151,7 @@ for o, a in myopts:
         print("\n")
         print("Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
         print(" ")
-        print("Usage: %s -s switches.txt -c commands.txt -p -w -t 45" % sys.argv[0])
+        print("Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
         print("   -s is optional, run without -s for a single switch")
         print("   -c is optional, run without -c for a single command")
         print("   -w is optional, use to write the output to a file [Default: True]")
@@ -157,6 +159,7 @@ for o, a in myopts:
         print("   -pw is supported, optional and will print the output to screen and write the output to file!")
         print("   -t is optional, use to set a command timeout in seconds [Default: 60]")
         print("   -X is optional, use to disable \"do no harm\"")
+        print("   -e is optional, use to submit an enable password")
         print(" ")
         print("Version: %s" % crassh_version)
         print(" ")
@@ -171,6 +174,9 @@ for o, a in myopts:
 
     if o == '-X':
       play_safe = False
+
+    if o == '-e':
+      enable = True
 
 
 if sfile == "":
@@ -208,6 +214,13 @@ try:
 except:
   sys.exit()
 
+if enable:
+  try:
+    enable_password = getpass.getpass("Enable password:")
+  except:
+    sys.exit()
+
+
 """
     Ready to loop thru switches
 """
@@ -242,6 +255,11 @@ for switch in switches:
 
     print("Connecting to %s ... " % switch)
 
+    if enable:
+      remote_conn.send("enable\n")
+      time.sleep(0.5)
+      remote_conn.send(enable_password + "\n")
+
     remote_conn.send("terminal length 0\n")
     time.sleep(0.5)
     output = remote_conn.recv(1000)
@@ -275,7 +293,7 @@ for switch in switches:
     for cmd in commands:
 
         # Send the Command
-        print switch + ": Running " + cmd
+        print hostname + ": Running " + cmd
         output = send_command(cmd, hostname, bail_timeout)
 
         # Print the output (optional)
