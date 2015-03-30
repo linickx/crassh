@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.08"
+crassh_version = "1.09"
 
 # Default Vars
 sfile=''
@@ -152,14 +152,14 @@ for o, a in myopts:
         print("Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
         print(" ")
         print("Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
-        print("   -s is optional, run without -s for a single switch")
-        print("   -c is optional, run without -c for a single command")
-        print("   -w is optional, use to write the output to a file [Default: True]")
-        print("   -p is optional, use to print the output to the screen [Default: False]")
-        print("   -pw is supported, optional and will print the output to screen and write the output to file!")
-        print("   -t is optional, use to set a command timeout in seconds [Default: 60]")
-        print("   -X is optional, use to disable \"do no harm\"")
-        print("   -e is optional, use to submit an enable password")
+        print("   -s supply a text file of switch hostnames or IP addresses [optional]")
+        print("   -c supply a text file of commands to run on switches [optional]")
+        print("   -w write the output to a file [optional | Default: True]")
+        print("   -p print the output to the screen [optional | Default: False]")
+        print("   -pw is supported, will print the output to screen and write the output to file! [optional]")
+        print("   -t set a command timeout in seconds [optional | Default: 60]")
+        print("   -X disable \"do no harm\" [optional]")
+        print("   -e set an enable password [optional]")
         print(" ")
         print("Version: %s" % crassh_version)
         print(" ")
