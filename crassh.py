@@ -235,6 +235,8 @@ for switch in switches:
 
     remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    print("Connecting to %s ... " % switch)
+
     try:
       # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
       remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False)
@@ -252,8 +254,6 @@ for switch in switches:
 
     output = remote_conn.recv(1000)
     #print output
-
-    print("Connecting to %s ... " % switch)
 
     if enable:
       remote_conn.send("enable\n")
