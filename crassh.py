@@ -239,7 +239,7 @@ for switch in switches:
 
     try:
       # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
-      remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False)
+      remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
     except paramiko.AuthenticationException, e:
       print "Authentication Error: " ,e
       sys.exit()
