@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.10"
+crassh_version = "1.11"
 
 # Default Vars
 sfile=''
@@ -38,6 +38,7 @@ printo = False
 bail_timeout = 60
 play_safe = True
 enable = False
+delay_command = False
 
 # Functions
 
@@ -111,7 +112,7 @@ def do_no_harm(command):
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:hpwXe")
+    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
 except getopt.GetoptError as e:
     print (str(e))
     print("Usage: %s -s switches.txt -c commands.txt -t timeout" % sys.argv[0])
@@ -160,6 +161,7 @@ for o, a in myopts:
         print("   -t set a command timeout in seconds [optional | Default: 60]")
         print("   -X disable \"do no harm\" [optional]")
         print("   -e set an enable password [optional]")
+        print("   -d set a delay (in seconds) between commands [optional]")
         print(" ")
         print("Version: %s" % crassh_version)
         print(" ")
@@ -177,6 +179,10 @@ for o, a in myopts:
 
     if o == '-e':
       enable = True
+
+    if o == '-d':
+        delay_command = True
+        delay_command_time=int(a)
 
 
 if sfile == "":
@@ -301,6 +307,10 @@ for switch in switches:
             print output
         if writeo:
             f.write(output)
+
+        # delay next command (optional)
+        if delay_command:
+            time.sleep(delay_command_time)
 
     # /end Command Loop
 

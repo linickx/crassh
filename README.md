@@ -30,8 +30,9 @@ Usage: ./crassh.py -s switches.txt -c commands.txt -p -w -t 45 -e
    -t set a command timeout in seconds [optional | Default: 60]"
    -X disable \"do no harm\" [optional]"
    -e set an enable password [optional]"
+   -d set a delay between commands [optional]"
 
-Version: 1.10
+Version: 1.11
 
 linickx:crassh nick$
 ```
