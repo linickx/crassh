@@ -21,17 +21,17 @@ linickx:crassh nick$ ./crassh.py -h
 
 Nick's Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short!
 
-Usage: ./crassh.py -s switches.txt -c commands.txt -p -w -t 45
-   -s is optional, run without -s for a single switch
-   -c is optional, run without -c for a single command
-   -w is optional, use to write the output to a file [Default: True]
-   -p is optional, use to print the output to screen [Default: False]
-   -pw is supported, optional and will print the output to screen and write the output to file!
-   -t is optional, use to set a command timeout in seconds [Default: 60]
-   -X is optional, use to disable "do no harm"
-   -e is optional, use to submit an enable password
+Usage: ./crassh.py -s switches.txt -c commands.txt -p -w -t 45 -e
+   -s supply a text file of switch hostnames or IP addresses [optional]"
+   -c supply a text file of commands to run on switches [optional]"
+   -w write the output to a file [optional | Default: True]"
+   -p print the output to the screen [optional | Default: False]"
+   -pw is supported, will print the output to screen and write the output to file! [optional]"
+   -t set a command timeout in seconds [optional | Default: 60]"
+   -X disable \"do no harm\" [optional]"
+   -e set an enable password [optional]"
 
-Version: 1.08
+Version: 1.10
 
 linickx:crassh nick$
 ```
