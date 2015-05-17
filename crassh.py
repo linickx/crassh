@@ -104,19 +104,32 @@ def do_no_harm(command):
         print ""
         print("Harmful Command found - Aborting!")
         print("  \"%s\" tripped the do no harm sensor => %s" % (command, error))
-        print("To force the use of dangerous things, use -X, e.g:")
-        print("  %s -X -s switches.txt -c commands.txt -p -w -t 45" % sys.argv[0])
-        sys.exit()
+        print("\n To force the use of dangerous things, use -X")
+        print_help()
 
+def print_help(exit = 0):
+    print("\n Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
+    print("   -s supply a text file of switch hostnames or IP addresses [optional]")
+    print("   -c supply a text file of commands to run on switches [optional]")
+    print("   -w write the output to a file [optional | Default: True]")
+    print("   -p print the output to the screen [optional | Default: False]")
+    print("   -pw is supported, will print the output to screen and write the output to file! [optional]")
+    print("   -t set a command timeout in seconds [optional | Default: 60]")
+    print("   -X disable \"do no harm\" [optional]")
+    print("   -e set an enable password [optional]")
+    print("   -d set a delay (in seconds) between commands [optional]")
+    print(" ")
+    print("Version: %s" % crassh_version)
+    print(" ")
+    sys.exit(exit)
 
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
 try:
     myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
 except getopt.GetoptError as e:
-    print (str(e))
-    print("Usage: %s -s switches.txt -c commands.txt -t timeout" % sys.argv[0])
-    sys.exit(2)
+    print ("\n ERROR: %s" % str(e))
+    print_help(2)
 
 for o, a in myopts:
     if o == '-s':
@@ -149,23 +162,8 @@ for o, a in myopts:
         bail_timeout=int(a)
 
     if o == '-h':
-        print("\n")
-        print("Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
-        print(" ")
-        print("Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
-        print("   -s supply a text file of switch hostnames or IP addresses [optional]")
-        print("   -c supply a text file of commands to run on switches [optional]")
-        print("   -w write the output to a file [optional | Default: True]")
-        print("   -p print the output to the screen [optional | Default: False]")
-        print("   -pw is supported, will print the output to screen and write the output to file! [optional]")
-        print("   -t set a command timeout in seconds [optional | Default: 60]")
-        print("   -X disable \"do no harm\" [optional]")
-        print("   -e set an enable password [optional]")
-        print("   -d set a delay (in seconds) between commands [optional]")
-        print(" ")
-        print("Version: %s" % crassh_version)
-        print(" ")
-        sys.exit()
+        print("\n Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
+        print_help()
 
     if o == '-p':
         writeo = False
@@ -205,6 +203,8 @@ if cfile == "":
 if play_safe:
     for command in commands:
         do_no_harm(command)
+else:
+    print("\n--\n Do no Harm checking DISABLED! \n--\n")
 
 """
     Capture Switch log in credentials...
