@@ -44,69 +44,69 @@ delay_command = False
 
 # # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
 def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
-  # Start with empty var & loop
-  output = ""
-  keeplooping = True
+    # Start with empty var & loop
+    output = ""
+    keeplooping = True
 
-  # Regex for either config or enable
-  regex = '^' + hostname + '(.*)(\ )?#'
-  theprompt = re.compile(regex)
+    # Regex for either config or enable
+    regex = '^' + hostname + '(.*)(\ )?#'
+    theprompt = re.compile(regex)
 
-  # Time when the command started, prepare for timeout.
-  now = int(time.time())
-  timeout = now + bail_timeout
-
-  # Send the command
-  remote_conn.send(command + "\n")
-
-  # loop the output
-  while keeplooping:
-
-    # Setup bail timer
+    # Time when the command started, prepare for timeout.
     now = int(time.time())
-    if now == timeout:
-      print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
-      output += "crassh bailed on command: " + cmd
-      keeplooping = False
-      break
+    timeout = now + bail_timeout
 
-    # update receive buffer whilst waiting for the prompt to come back
-    output += remote_conn.recv(2048)
+    # Send the command
+    remote_conn.send(command + "\n")
 
-    # Search the output for our prompt
-    theoutput = output.splitlines()
-    for lines in theoutput:
-      myregmatch = theprompt.search(lines)
+    # loop the output
+    while keeplooping:
 
-      if myregmatch:
-        keeplooping = False
+        # Setup bail timer
+        now = int(time.time())
+        if now == timeout:
+            print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
+            output += "crassh bailed on command: " + cmd
+            keeplooping = False
+            break
 
-  return output
+        # update receive buffer whilst waiting for the prompt to come back
+        output += remote_conn.recv(2048)
+
+        # Search the output for our prompt
+        theoutput = output.splitlines()
+        for lines in theoutput:
+            myregmatch = theprompt.search(lines)
+
+        if myregmatch:
+            keeplooping = False
+
+    return output
 
 # Check Commands for dangerous things
 def do_no_harm(command):
 
-  harmful = False
+    harmful = False
 
-  if re.match("reload", command):
-    harmful = True
-    error = "reload"
+    if re.match("reload", command):
+        harmful = True
+        error = "reload"
 
-  if re.match("wr(.*)\ e", command):
-    harmful = True
-    error = "write erase"
+    if re.match("wr(.*)\ e", command):
+        harmful = True
+        error = "write erase"
 
-  if re.match("del", command):
-    harmful = True
-    error = "delete"
+    if re.match("del", command):
+        harmful = True
+        error = "delete"
 
-  if harmful:
-    print ""
-    print("Harmful Command found - Aborting!")
-    print("  \"%s\" tripped the do no harm sensor => %s" % (command, error))
-    print("To force the use of dangerous things, use -X, e.g:")
-    print("  %s -X -s switches.txt -c commands.txt -p -w -t 45" % sys.argv[0])
-    sys.exit()
+    if harmful:
+        print ""
+        print("Harmful Command found - Aborting!")
+        print("  \"%s\" tripped the do no harm sensor => %s" % (command, error))
+        print("To force the use of dangerous things, use -X, e.g:")
+        print("  %s -X -s switches.txt -c commands.txt -p -w -t 45" % sys.argv[0])
+        sys.exit()
 
 
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
@@ -186,45 +186,45 @@ for o, a in myopts:
 
 
 if sfile == "":
-  try:
-    iswitch = raw_input("Enter the switch to connect to: ")
-    switches.append(iswitch)
-  except:
-    sys.exit()
+    try:
+        iswitch = raw_input("Enter the switch to connect to: ")
+        switches.append(iswitch)
+    except:
+        sys.exit()
 
 if cfile == "":
-  try:
-    icommand = raw_input("The switch command you want to run: ")
-    commands.append(icommand)
-  except:
-    sys.exit()
+    try:
+        icommand = raw_input("The switch command you want to run: ")
+        commands.append(icommand)
+    except:
+        sys.exit()
 
 """
     Check the commands are safe
 """
 if play_safe:
-  for command in commands:
-    do_no_harm(command)
+    for command in commands:
+        do_no_harm(command)
 
 """
     Capture Switch log in credentials...
 """
 
 try:
-  username = raw_input("Enter your username: ")
+    username = raw_input("Enter your username: ")
 except:
-  sys.exit()
+    sys.exit()
 
 try:
-  password = getpass.getpass("Enter your password:")
+    password = getpass.getpass("Enter your password:")
 except:
-  sys.exit()
+    sys.exit()
 
 if enable:
-  try:
-    enable_password = getpass.getpass("Enable password:")
-  except:
-    sys.exit()
+    try:
+        enable_password = getpass.getpass("Enable password:")
+    except:
+        sys.exit()
 
 
 """
@@ -244,17 +244,17 @@ for switch in switches:
     print("Connecting to %s ... " % switch)
 
     try:
-      # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
-      remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
+        # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
+        remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
     except paramiko.AuthenticationException, e:
-      print "Authentication Error: " ,e
-      sys.exit()
+        print "Authentication Error: " ,e
+        sys.exit()
     except paramiko.SSHException, e:
-      print "SSH Error: " , e
-      sys.exit()
+        print "SSH Error: " , e
+        sys.exit()
     except socket.error, e:
-      print "Connection Failed: ", e
-      sys.exit()
+        print "Connection Failed: ", e
+        sys.exit()
 
     remote_conn = remote_conn_pre.invoke_shell()
 
@@ -262,9 +262,9 @@ for switch in switches:
     #print output
 
     if enable:
-      remote_conn.send("enable\n")
-      time.sleep(0.5)
-      remote_conn.send(enable_password + "\n")
+        remote_conn.send("enable\n")
+        time.sleep(0.5)
+        remote_conn.send(enable_password + "\n")
 
     remote_conn.send("terminal length 0\n")
     time.sleep(0.5)
