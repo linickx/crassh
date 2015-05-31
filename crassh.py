@@ -229,6 +229,13 @@ if enable:
 
 
 """
+    Time estimations for those delaying commands
+"""
+if delay_command:
+    time_estimate = datetime.timedelta(0,(len(commands) * len(switches) * delay_command_time)) + datetime.datetime.now()
+    print(" Estimatated Completion Time: %s" % time_estimate.strftime("%H:%M:%S (%y-%m-%d)"))
+
+"""
     Ready to loop thru switches
 """
 
