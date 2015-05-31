@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.11"
+crassh_version = "1.12"
 
 # Default Vars
 sfile=''
@@ -154,9 +154,10 @@ for o, a in myopts:
         f=open(cfile,'r')
         # Loop thru the array
         for fline in f:
-            # Assume one switch per line
+            # Assume one switch per line (ignore blank lines)
             thiscmd = fline.strip()
-            commands.append(thiscmd)
+            if thiscmd[:-1]:
+                commands.append(thiscmd)
 
     if o == '-t':
         bail_timeout=int(a)
