@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.12"
+crassh_version = "1.13"
 
 # Default Vars
 sfile=''
@@ -232,8 +232,15 @@ if enable:
     Time estimations for those delaying commands
 """
 if delay_command:
-    time_estimate = datetime.timedelta(0,(len(commands) * len(switches) * delay_command_time)) + datetime.datetime.now()
+    time_estimate = datetime.timedelta(0,(len(commands) * (len(switches) * 2) * delay_command_time)) + datetime.datetime.now()
+    print(" Start Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
     print(" Estimatated Completion Time: %s" % time_estimate.strftime("%H:%M:%S (%y-%m-%d)"))
+
+"""
+    Progress calculations - for big jobs only
+"""
+if (len(commands) * len(switches)) > 100:
+    counter = 0
 
 """
     Ready to loop thru switches
@@ -320,6 +327,22 @@ for switch in switches:
         if delay_command:
             time.sleep(delay_command_time)
 
+        # Print progress
+        try:
+            counter
+            if (counter % 10) == 0:
+                completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
+                if int(completion) > 9:
+                    print("\n  %s%% Complete" % int(completion))
+                    if delay_command:
+                        time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
+                        print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
+                    print(" ")
+            counter += 1
+        except:
+            pass
+
+
     # /end Command Loop
 
     if writeo:
@@ -349,4 +372,6 @@ if writeo:
 
     print(" ---------------------------------- ")
 print(" Script FINISHED ! ")
+if delay_command:
+    print(" Finish Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
 print(" ********************************** ")
