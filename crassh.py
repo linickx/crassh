@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.13"
+crassh_version = "1.14"
 
 # Default Vars
 sfile=''
@@ -71,7 +71,8 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
             break
 
         # update receive buffer whilst waiting for the prompt to come back
-        output += remote_conn.recv(2048)
+        if ssh_session.recv_ready():
+            output += remote_conn.recv(2048)
 
         # Search the output for our prompt
         theoutput = output.splitlines()
