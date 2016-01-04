@@ -65,7 +65,7 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
 
         # update receive buffer whilst waiting for the prompt to come back
         if remote_conn.recv_ready():
-            output += remote_conn.recv(2048)
+            output += remote_conn.recv(2048).decode('utf-8')
 
             # Search the output for our prompt
             theoutput = output.splitlines()
@@ -288,8 +288,8 @@ def main():
 
         remote_conn = remote_conn_pre.invoke_shell()
 
+        # Flush buffer.
         output = remote_conn.recv(1000)
-        #print output
 
         if enable:
             remote_conn.send("enable\n")
@@ -298,6 +298,7 @@ def main():
 
         remote_conn.send("terminal length 0\n")
         time.sleep(0.5)
+        # Flush buffer.
         output = remote_conn.recv(1000)
 
         # Clear the Var.
@@ -306,7 +307,7 @@ def main():
         remote_conn.send("show run | inc hostname \n")
         while not "#" in output:
             # update receive buffer
-                output += remote_conn.recv(1024)
+                output += remote_conn.recv(1024).decode('utf-8')
 
         for subline in output.splitlines():
             thisrow = subline.split()
