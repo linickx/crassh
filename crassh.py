@@ -38,6 +38,12 @@ play_safe = True
 enable = False
 delay_command = False
 
+# Python 2 & 3 input compatability
+try:
+    input = raw_input
+except NameError:
+    pass
+
 # Functions
 
 # # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
@@ -124,6 +130,9 @@ def print_help(exit = 0):
 
 # Main Code Block
 def main():
+    
+    global input
+    
     # Main Vars
     sfile=''
     cfile=''
