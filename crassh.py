@@ -124,255 +124,262 @@ def print_help(exit = 0):
     print(" ")
     sys.exit(exit)
 
-# Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
+# Main Code Block
+def main():
+    # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 
-try:
-    myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
-except getopt.GetoptError as e:
-    print ("\n ERROR: %s" % str(e))
-    print_help(2)
+    try:
+        myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
+    except getopt.GetoptError as e:
+        print ("\n ERROR: %s" % str(e))
+        print_help(2)
 
-for o, a in myopts:
-    if o == '-s':
-        sfile=a
-        if os.path.isfile(sfile) == False:
-            print("Cannot find %s" % sfile)
+    for o, a in myopts:
+        if o == '-s':
+            sfile=a
+            if os.path.isfile(sfile) == False:
+                print("Cannot find %s" % sfile)
+                sys.exit()
+            # open our file
+            f=open(sfile,'r')
+            # Loop thru the array
+            for fline in f:
+                # Assume one switch per line
+                thisswitch = fline.strip()
+                switches.append(thisswitch)
+
+        if o == '-c':
+            cfile=a
+            if os.path.isfile(cfile) == False:
+                print("Cannot find %s" % cfile)
+                sys.exit()
+            # open our file
+            f=open(cfile,'r')
+            # Loop thru the array
+            for fline in f:
+                # Assume one switch per line (ignore blank lines)
+                thiscmd = fline.strip()
+                if thiscmd[:-1]:
+                    commands.append(thiscmd)
+
+        if o == '-t':
+            bail_timeout=int(a)
+
+        if o == '-h':
+            print("\n Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
+            print_help()
+
+        if o == '-p':
+            writeo = False
+            printo = True
+
+        if o == '-w':
+            writeo = True
+
+        if o == '-X':
+          play_safe = False
+
+        if o == '-e':
+          enable = True
+
+        if o == '-d':
+            delay_command = True
+            delay_command_time=int(a)
+
+
+    if sfile == "":
+        try:
+            iswitch = raw_input("Enter the switch to connect to: ")
+            switches.append(iswitch)
+        except:
             sys.exit()
-        # open our file
-        f=open(sfile,'r')
-        # Loop thru the array
-        for fline in f:
-            # Assume one switch per line
-            thisswitch = fline.strip()
-            switches.append(thisswitch)
 
-    if o == '-c':
-        cfile=a
-        if os.path.isfile(cfile) == False:
-            print("Cannot find %s" % cfile)
+    if cfile == "":
+        try:
+            icommand = raw_input("The switch command you want to run: ")
+            commands.append(icommand)
+        except:
             sys.exit()
-        # open our file
-        f=open(cfile,'r')
-        # Loop thru the array
-        for fline in f:
-            # Assume one switch per line (ignore blank lines)
-            thiscmd = fline.strip()
-            if thiscmd[:-1]:
-                commands.append(thiscmd)
-
-    if o == '-t':
-        bail_timeout=int(a)
-
-    if o == '-h':
-        print("\n Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
-        print_help()
-
-    if o == '-p':
-        writeo = False
-        printo = True
-
-    if o == '-w':
-        writeo = True
-
-    if o == '-X':
-      play_safe = False
-
-    if o == '-e':
-      enable = True
-
-    if o == '-d':
-        delay_command = True
-        delay_command_time=int(a)
-
-
-if sfile == "":
-    try:
-        iswitch = raw_input("Enter the switch to connect to: ")
-        switches.append(iswitch)
-    except:
-        sys.exit()
-
-if cfile == "":
-    try:
-        icommand = raw_input("The switch command you want to run: ")
-        commands.append(icommand)
-    except:
-        sys.exit()
-
-"""
-    Check the commands are safe
-"""
-if play_safe:
-    for command in commands:
-        do_no_harm(command)
-else:
-    print("\n--\n Do no Harm checking DISABLED! \n--\n")
-
-"""
-    Capture Switch log in credentials...
-"""
-
-try:
-    username = raw_input("Enter your username: ")
-except:
-    sys.exit()
-
-try:
-    password = getpass.getpass("Enter your password:")
-except:
-    sys.exit()
-
-if enable:
-    try:
-        enable_password = getpass.getpass("Enable password:")
-    except:
-        sys.exit()
-
-
-"""
-    Time estimations for those delaying commands
-"""
-if delay_command:
-    time_estimate = datetime.timedelta(0,(len(commands) * (len(switches) * 2) * delay_command_time)) + datetime.datetime.now()
-    print(" Start Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
-    print(" Estimatated Completion Time: %s" % time_estimate.strftime("%H:%M:%S (%y-%m-%d)"))
-
-"""
-    Progress calculations - for big jobs only
-"""
-if (len(commands) * len(switches)) > 100:
-    counter = 0
-
-"""
-    Ready to loop thru switches
-"""
-
-for switch in switches:
-    """
-        https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
 
     """
+        Check the commands are safe
+    """
+    if play_safe:
+        for command in commands:
+            do_no_harm(command)
+    else:
+        print("\n--\n Do no Harm checking DISABLED! \n--\n")
 
-    remote_conn_pre = paramiko.SSHClient()
-
-    remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    print("Connecting to %s ... " % switch)
+    """
+        Capture Switch log in credentials...
+    """
 
     try:
-        # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
-        remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
-    except paramiko.AuthenticationException as e:
-        print("Authentication Error: %s" % e)
-        sys.exit()
-    except paramiko.SSHException as e:
-        print("SSH Error: %s" % e)
-        sys.exit()
-    except socket.error as e:
-        print("Connection Failed: %s" % e)
+        username = raw_input("Enter your username: ")
+    except:
         sys.exit()
 
-    remote_conn = remote_conn_pre.invoke_shell()
-
-    output = remote_conn.recv(1000)
-    #print output
+    try:
+        password = getpass.getpass("Enter your password:")
+    except:
+        sys.exit()
 
     if enable:
-        remote_conn.send("enable\n")
-        time.sleep(0.5)
-        remote_conn.send(enable_password + "\n")
-
-    remote_conn.send("terminal length 0\n")
-    time.sleep(0.5)
-    output = remote_conn.recv(1000)
-
-    # Clear the Var.
-    output = ""
-
-    remote_conn.send("show run | inc hostname \n")
-    while not "#" in output:
-        # update receive buffer
-            output += remote_conn.recv(1024)
-
-    for subline in output.splitlines():
-        thisrow = subline.split()
         try:
-            gotdata = thisrow[1]
-            if thisrow[0] == "hostname":
-                hostname = thisrow[1]
-                prompt = hostname + "#"
-        except IndexError:
-            gotdata = 'null'
-
-    # Write the output to a file (optional) - prepare file + filename before CMD loop
-    if writeo:
-        filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
-        filename = hostname + "-" + filetime + ".txt"
-        filenames.append(filename)
-        f = open(filename,'a')
-
-    # Command Loop
-    for cmd in commands:
-
-        # Send the Command
-        print("%s: Running: %s" % (hostname, cmd))
-        output = send_command(cmd, hostname, bail_timeout)
-
-        # Print the output (optional)
-        if printo:
-            print(output)
-        if writeo:
-            f.write(output)
-
-        # delay next command (optional)
-        if delay_command:
-            time.sleep(delay_command_time)
-
-        # Print progress
-        try:
-            counter
-            if (counter % 10) == 0:
-                completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
-                if int(completion) > 9:
-                    print("\n  %s%% Complete" % int(completion))
-                    if delay_command:
-                        time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
-                        print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
-                    print(" ")
-            counter += 1
+            enable_password = getpass.getpass("Enable password:")
         except:
-            pass
+            sys.exit()
 
 
-    # /end Command Loop
+    """
+        Time estimations for those delaying commands
+    """
+    if delay_command:
+        time_estimate = datetime.timedelta(0,(len(commands) * (len(switches) * 2) * delay_command_time)) + datetime.datetime.now()
+        print(" Start Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
+        print(" Estimatated Completion Time: %s" % time_estimate.strftime("%H:%M:%S (%y-%m-%d)"))
 
+    """
+        Progress calculations - for big jobs only
+    """
+    if (len(commands) * len(switches)) > 100:
+        counter = 0
+
+    """
+        Ready to loop thru switches
+    """
+
+    for switch in switches:
+        """
+            https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
+
+        """
+
+        remote_conn_pre = paramiko.SSHClient()
+
+        remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        print("Connecting to %s ... " % switch)
+
+        try:
+            # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
+            remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
+        except paramiko.AuthenticationException as e:
+            print("Authentication Error: %s" % e)
+            sys.exit()
+        except paramiko.SSHException as e:
+            print("SSH Error: %s" % e)
+            sys.exit()
+        except socket.error as e:
+            print("Connection Failed: %s" % e)
+            sys.exit()
+
+        remote_conn = remote_conn_pre.invoke_shell()
+
+        output = remote_conn.recv(1000)
+        #print output
+
+        if enable:
+            remote_conn.send("enable\n")
+            time.sleep(0.5)
+            remote_conn.send(enable_password + "\n")
+
+        remote_conn.send("terminal length 0\n")
+        time.sleep(0.5)
+        output = remote_conn.recv(1000)
+
+        # Clear the Var.
+        output = ""
+
+        remote_conn.send("show run | inc hostname \n")
+        while not "#" in output:
+            # update receive buffer
+                output += remote_conn.recv(1024)
+
+        for subline in output.splitlines():
+            thisrow = subline.split()
+            try:
+                gotdata = thisrow[1]
+                if thisrow[0] == "hostname":
+                    hostname = thisrow[1]
+                    prompt = hostname + "#"
+            except IndexError:
+                gotdata = 'null'
+
+        # Write the output to a file (optional) - prepare file + filename before CMD loop
+        if writeo:
+            filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+            filename = hostname + "-" + filetime + ".txt"
+            filenames.append(filename)
+            f = open(filename,'a')
+
+        # Command Loop
+        for cmd in commands:
+
+            # Send the Command
+            print("%s: Running: %s" % (hostname, cmd))
+            output = send_command(cmd, hostname, bail_timeout)
+
+            # Print the output (optional)
+            if printo:
+                print(output)
+            if writeo:
+                f.write(output)
+
+            # delay next command (optional)
+            if delay_command:
+                time.sleep(delay_command_time)
+
+            # Print progress
+            try:
+                counter
+                if (counter % 10) == 0:
+                    completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
+                    if int(completion) > 9:
+                        print("\n  %s%% Complete" % int(completion))
+                        if delay_command:
+                            time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
+                            print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
+                        print(" ")
+                counter += 1
+            except:
+                pass
+
+
+        # /end Command Loop
+
+        if writeo:
+            # Close the File
+            f.close()
+
+
+        # Disconnect from SSH
+        remote_conn_pre.close()
+
+        if writeo:
+            print("Switch %s done, output: %s" % (switch, filename))
+        else:
+            print("Switch %s done" % switch)
+
+        # Sleep between SSH connections
+        time.sleep(1)
+
+    print("\n")
+
+    print(" ********************************** ")
     if writeo:
-        # Close the File
-        f.close()
+        print("  Output files: ")
 
+        for ofile in filenames:
+            print("   - %s" % ofile)
 
-    # Disconnect from SSH
-    remote_conn_pre.close()
+        print(" ---------------------------------- ")
+    print(" Script FINISHED ! ")
+    if delay_command:
+        print(" Finish Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
+    print(" ********************************** ")
 
-    if writeo:
-        print("Switch %s done, output: %s" % (switch, filename))
-    else:
-        print("Switch %s done" % switch)
-
-    # Sleep between SSH connections
-    time.sleep(1)
-
-print("\n")
-
-print(" ********************************** ")
-if writeo:
-    print("  Output files: ")
-
-    for ofile in filenames:
-        print("   - %s" % ofile)
-
-    print(" ---------------------------------- ")
-print(" Script FINISHED ! ")
-if delay_command:
-    print(" Finish Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
-print(" ********************************** ")
+# If run from interpreter, run main code function.
+if __name__ == "__main__":
+    print("a")
+    main()
