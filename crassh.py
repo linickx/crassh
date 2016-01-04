@@ -190,14 +190,14 @@ def main():
 
     if sfile == "":
         try:
-            iswitch = raw_input("Enter the switch to connect to: ")
+            iswitch = input("Enter the switch to connect to: ")
             switches.append(iswitch)
         except:
             sys.exit()
 
     if cfile == "":
         try:
-            icommand = raw_input("The switch command you want to run: ")
+            icommand = input("The switch command you want to run: ")
             commands.append(icommand)
         except:
             sys.exit()
@@ -382,5 +382,4 @@ def main():
 
 # If run from interpreter, run main code function.
 if __name__ == "__main__":
-    print("a")
     main()
