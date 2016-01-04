@@ -19,7 +19,7 @@ import paramiko
 import socket
 import time
 import datetime
-import cStringIO
+from io import StringIO
 import sys, getopt
 import os.path
 import re
@@ -65,7 +65,7 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
         # Setup bail timer
         now = int(time.time())
         if now == timeout:
-            print "\n Command \"" + cmd + "\" took " + str(bail_timeout) + "secs to run, bailing!"
+            print("\n Command %s took %s secs to run, bailing!" % (cmd, str(bail_timeout)))
             output += "crassh bailed on command: " + cmd
             keeplooping = False
             break
@@ -102,7 +102,7 @@ def do_no_harm(command):
         error = "delete"
 
     if harmful:
-        print ""
+        print("")
         print("Harmful Command found - Aborting!")
         print("  \"%s\" tripped the do no harm sensor => %s" % (command, error))
         print("\n To force the use of dangerous things, use -X")
@@ -262,14 +262,14 @@ for switch in switches:
     try:
         # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
         remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
-    except paramiko.AuthenticationException, e:
-        print "Authentication Error: " ,e
+    except paramiko.AuthenticationException as e:
+        print("Authentication Error: %s" % e)
         sys.exit()
-    except paramiko.SSHException, e:
-        print "SSH Error: " , e
+    except paramiko.SSHException as e:
+        print("SSH Error: %s" % e)
         sys.exit()
-    except socket.error, e:
-        print "Connection Failed: ", e
+    except socket.error as e:
+        print("Connection Failed: %s" % e)
         sys.exit()
 
     remote_conn = remote_conn_pre.invoke_shell()
@@ -315,12 +315,12 @@ for switch in switches:
     for cmd in commands:
 
         # Send the Command
-        print hostname + ": Running " + cmd
+        print("%s: Running: %s" % (hostname, cmd))
         output = send_command(cmd, hostname, bail_timeout)
 
         # Print the output (optional)
         if printo:
-            print output
+            print(output)
         if writeo:
             f.write(output)
 
