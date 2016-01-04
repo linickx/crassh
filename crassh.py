@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.14-i2"
+crassh_version = "1.15"
 
 # Default Vars
 sfile=''
