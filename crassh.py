@@ -28,8 +28,6 @@ import re
 crassh_version = "1.16"
 
 # Default Vars
-sfile=''
-cfile=''
 switches = []
 commands = []
 filenames = []
@@ -126,8 +124,11 @@ def print_help(exit = 0):
 
 # Main Code Block
 def main():
+    # Main Vars
+    sfile=''
+    cfile=''
+    
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
-
     try:
         myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
     except getopt.GetoptError as e:
