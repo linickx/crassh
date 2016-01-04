@@ -227,7 +227,7 @@ def main():
     """
 
     try:
-        username = raw_input("Enter your username: ")
+        username = input("Enter your username: ")
     except:
         sys.exit()
 
