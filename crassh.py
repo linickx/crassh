@@ -24,19 +24,8 @@ import sys, getopt
 import os.path
 import re
 
-# Version Control in a Variable
-crassh_version = "1.16"
-
-# Default Vars
-switches = []
-commands = []
-filenames = []
-writeo = True
-printo = False
-bail_timeout = 60
-play_safe = True
-enable = False
-delay_command = False
+# Version Control in a global Variable
+crassh_version = "1.16-dev"
 
 # Python 2 & 3 input compatability
 try:
@@ -113,6 +102,8 @@ def do_no_harm(command):
         print_help()
 
 def print_help(exit = 0):
+    global crassh_version
+    
     print("\n Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
     print("   -s supply a text file of switch hostnames or IP addresses [optional]")
     print("   -c supply a text file of commands to run on switches [optional]")
@@ -131,11 +122,22 @@ def print_help(exit = 0):
 # Main Code Block
 def main():
     
-    global input
+    # import Global Vars
+    global input, remote_conn
     
-    # Main Vars
+    # Main Vars (local scope)
+    switches = []
+    commands = []
+    filenames = []
     sfile=''
     cfile=''
+    play_safe = True
+    enable = False
+    delay_command = False
+    writeo = True
+    printo = False
+    bail_timeout = 60
+
     
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
