@@ -27,7 +27,7 @@ import re
 # Version Control in a global Variable
 crassh_version = "1.16-dev"
 
-# Python 2 & 3 input compatability
+# Python 2 & 3 input compatibility
 try:
     input = raw_input
 except NameError:
