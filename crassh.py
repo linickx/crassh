@@ -285,6 +285,9 @@ def main():
         except socket.error as e:
             print("Connection Failed: %s" % e)
             sys.exit()
+        except:
+        print("Unexpected error:", sys.exc_info()[0])
+        sys.exit()
 
         remote_conn = remote_conn_pre.invoke_shell()
 
