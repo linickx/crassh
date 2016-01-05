@@ -1,0 +1,14 @@
+language: python
+# 2.6 for CentOS, 3.5 for OSX
+python:
+  - "2.6"
+  - "3.5"
+# Deps
+install:
+  - pip install paramiko
+# command to run tests
+script: py.test
+# Restrict to Test branch
+branches:
+  only:
+      - travis-test
