@@ -11,4 +11,4 @@ script: py.test
 # Restrict to Test branch
 branches:
   only:
-      - travis-test
+      - tests-beta
