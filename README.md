@@ -1,4 +1,4 @@
-# crassh #
+# crassh ![Build Status](https://travis-ci.org/linickx/crassh.svg?branch=tests-beta)
 
 Cisco Remote Automation via SSH (*or C.R.A.SSH for short*) is a python script for automating commands on Cisco devices.
 
