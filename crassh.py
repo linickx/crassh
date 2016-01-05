@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.17"
+crassh_version = "1.18"
 
 # Default Vars
 sfile=''
@@ -124,8 +124,13 @@ def print_help(exit = 0):
     print(" ")
     sys.exit(exit)
 
-# Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
+# Python 2 & 3 input compatibility
+try:
+    input = raw_input
+except NameError:
+    pass
 
+# Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 try:
     myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
 except getopt.GetoptError as e:
@@ -187,14 +192,14 @@ for o, a in myopts:
 
 if sfile == "":
     try:
-        iswitch = raw_input("Enter the switch to connect to: ")
+        iswitch = input("Enter the switch to connect to: ")
         switches.append(iswitch)
     except:
         sys.exit()
 
 if cfile == "":
     try:
-        icommand = raw_input("The switch command you want to run: ")
+        icommand = input("The switch command you want to run: ")
         commands.append(icommand)
     except:
         sys.exit()
@@ -213,7 +218,7 @@ else:
 """
 
 try:
-    username = raw_input("Enter your username: ")
+    username = input("Enter your username: ")
 except:
     sys.exit()
 
