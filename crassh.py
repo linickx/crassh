@@ -25,7 +25,7 @@ import os.path
 import re
 
 # Version Control in a Variable
-crassh_version = "1.16"
+crassh_version = "1.17"
 
 # Default Vars
 sfile=''
@@ -72,7 +72,7 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
 
         # update receive buffer whilst waiting for the prompt to come back
         if remote_conn.recv_ready():
-            output += remote_conn.recv(2048)
+            output += remote_conn.recv(2048).decode('utf-8')
 
             # Search the output for our prompt
             theoutput = output.splitlines()
@@ -292,7 +292,7 @@ for switch in switches:
     remote_conn.send("show run | inc hostname \n")
     while not "#" in output:
         # update receive buffer
-            output += remote_conn.recv(1024)
+            output += remote_conn.recv(1024).decode('utf-8')
 
     for subline in output.splitlines():
         thisrow = subline.split()
