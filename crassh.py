@@ -21,7 +21,7 @@ import time
 import datetime
 from io import StringIO
 import sys, getopt
-import os.path
+import os, stat
 import re
 
 # Version Control in a Variable
@@ -124,11 +124,40 @@ def print_help(exit = 0):
     print(" ")
     sys.exit(exit)
 
+# http://stackoverflow.com/questions/1861836/checking-file-permissions-in-linux-with-python
+def isgroupreadable(filepath):
+  st = os.stat(filepath)
+  return bool(st.st_mode & stat.S_IRGRP)
+
+def isotherreadable(filepath):
+  st = os.stat(filepath)
+  return bool(st.st_mode & stat.S_IROTH)
+
 # Python 2 & 3 input compatibility
 try:
     input = raw_input
 except NameError:
     pass
+
+# Default Authentication File Path
+crasshrc = os.path.expanduser("~") + "/.crasshrc"
+
+# See if we have an Authentication File
+if os.path.isfile(crasshrc) == True:
+    f=open(crasshrc,'r')
+    # Loop thru the array
+    for fline in f:
+        thisline = fline.strip().split(":")
+        if thisline[0].strip() == "username":
+            username = thisline[1].strip()
+        if thisline[0].strip() == "password":
+            if isgroupreadable(crasshrc):
+                print("** Password not read from %s - file is GROUP readable ** " % crasshrc)
+            else:
+                if isotherreadable(crasshrc):
+                    print("** Password not read from %s - file is WORLD readable **"% crasshrc)
+                else:
+                    password = thisline[1].strip()
 
 # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
 try:
@@ -218,14 +247,20 @@ else:
 """
 
 try:
-    username = input("Enter your username: ")
+    username
 except:
-    sys.exit()
+    try:
+        username = input("Enter your username: ")
+    except:
+        sys.exit()
 
 try:
-    password = getpass.getpass("Enter your password:")
+    password
 except:
-    sys.exit()
+    try:
+        password = getpass.getpass("Enter your password:")
+    except:
+        sys.exit()
 
 if enable:
     try:
