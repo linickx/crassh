@@ -7,6 +7,9 @@ python:
 os:
  - osx
  - linux
+matrix:
+  allow_failures:
+    - os: osx
 # Deps
 install:
   - pip install .
