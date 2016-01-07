@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import crassh
-import os, pytest
+import os, pytest, stat
 
 
 def test_help(tmpdir, capsys):
@@ -30,3 +30,17 @@ def test_dnh_evil(capsys):
         # print(excinfo.value)
         # The exit value must be 0
         assert str(excinfo.value) == "0"
+
+def test_isgroupreadable(tmpdir):
+    # Check out file permission function works - Groups
+    test_groupfile = tmpdir.mkdir("sub").join("groupfile.txt")
+    test_groupfile.write("text")
+    os.chmod(str(test_groupfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP)
+    assert crassh.isgroupreadable(str(test_groupfile)) == True
+    
+def test_isotherreadable(tmpdir):
+    # Check out file permission function works - others 
+    test_othfile = tmpdir.mkdir("sub").join("otherfile.txt")
+    test_othfile.write("text")
+    os.chmod(str(test_othfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH)
+    assert crassh.isotherreadable(str(test_othfile)) == True
