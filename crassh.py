@@ -114,6 +114,9 @@ def print_help(exit = 0):
     print("   -X disable \"do no harm\" [optional]")
     print("   -e set an enable password [optional]")
     print("   -d set a delay (in seconds) between commands [optional]")
+    print("   -A set an Authentication file for SSH credentials [optional]")
+    print("   -U set a Username for SSH Authentication [optional]")
+    print("   -P set a Password for SSH Authentication [optional]")
     print(" ")
     print("Version: %s" % crassh_version)
     print(" ")
@@ -150,26 +153,9 @@ def main():
     # Default Authentication File Path
     crasshrc = os.path.expanduser("~") + "/.crasshrc"
 
-    # See if we have an Authentication File
-    if os.path.isfile(crasshrc) == True:
-        f=open(crasshrc,'r')
-        # Loop thru the array
-        for fline in f:
-            thisline = fline.strip().split(":")
-            if thisline[0].strip() == "username":
-                username = thisline[1].strip()
-            if thisline[0].strip() == "password":
-                if isgroupreadable(crasshrc):
-                    print("** Password not read from %s - file is GROUP readable ** " % crasshrc)
-                else:
-                    if isotherreadable(crasshrc):
-                        print("** Password not read from %s - file is WORLD readable **"% crasshrc)
-                    else:
-                        password = thisline[1].strip()
-
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
-        myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:hpwXe")
+        myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:A:U:P:hpwXe")
     except getopt.GetoptError as e:
         print ("\n ERROR: %s" % str(e))
         print_help(2)
@@ -225,8 +211,32 @@ def main():
         if o == '-d':
             delay_command = True
             delay_command_time=int(a)
+        
+        if o == '-A':
+            crasshrc=str(a)
 
+        if o == '-U':
+            username=str(a)
 
+        if o == '-P':
+            password=str(a)
+
+    # See if we have an Authentication File
+    if os.path.isfile(crasshrc) == True:
+        f=open(crasshrc,'r')
+        # Loop thru the array
+        for fline in f:
+            thisline = fline.strip().split(":")
+            if thisline[0].strip() == "username":
+                username = thisline[1].strip()
+            if thisline[0].strip() == "password":
+                if isgroupreadable(crasshrc):
+                    print("** Password not read from %s - file is GROUP readable ** " % crasshrc)
+                else:
+                    if isotherreadable(crasshrc):
+                        print("** Password not read from %s - file is WORLD readable **"% crasshrc)
+                    else:
+                        password = thisline[1].strip()
     if sfile == "":
         try:
             iswitch = input("Enter the switch to connect to: ")
