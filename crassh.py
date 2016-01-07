@@ -25,7 +25,7 @@ import os, stat
 import re
 
 # Version Control in a Variable
-crassh_version = "1.19"
+crassh_version = "1.20"
 
 # Default Vars
 sfile=''

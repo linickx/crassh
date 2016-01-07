@@ -31,8 +31,11 @@ Usage: ./crassh.py -s switches.txt -c commands.txt -p -w -t 45 -e
    -X disable \"do no harm\" [optional]"
    -e set an enable password [optional]"
    -d set a delay between commands [optional]"
+   -A set an Authentication file for SSH credentials [optional]
+   -U set a Username for SSH Authentication [optional]
+   -P set a Password for SSH Authentication [optional]
 
-Version: 1.11
+Version: 1.20
 
 linickx:crassh nick$
 ```
@@ -73,6 +76,24 @@ exit
 exit
 show run int g1/9
 ```
+
+### Authentication ###
+
+By default crassh will prompt for username and password credentials; `-U` can be used to supply a username as a CLI option, `-P` can be used to supply a password.   
+**Please take note that -P may expose your password in the command line history**
+
+ 
+crassh will look for and read a `~/.crasshrc` file; currently the file supports two colon separated variables `username` and `passwrd`:
+
+```
+username: nick
+password: mysecretpass
+```
+
+**_STORING YOUR PASSWORD IN PLAIN TEXT IN `~/.crasshrc` IS A SECURITY RISK_** Please appropriately secure your system; crassh will perform a basic file permission check.
+
+The `-A` option can be used to specify different authentication files, for example `-A /var/secrets/router_credentials.txt`
+ 
 
 ### Do no Harm ###
 
