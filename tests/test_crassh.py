@@ -28,7 +28,7 @@ def test_dnh_ok():
 
 def test_dnh_evil(capsys):
     # Check for Evil things
-    evil_cmds = ["reload", "reload in 5", "write erase", "wr er", "del flash:/*", "delete system:running-config"]
+    evil_cmds = ["reload", "rel", "reload in 5", "write erase", "wr er", "del flash:/*", "delete system:running-config"]
     for cmd in evil_cmds:
         # If the function exits then that is good!
         with pytest.raises(SystemExit) as excinfo:
