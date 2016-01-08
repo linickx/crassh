@@ -33,6 +33,8 @@ def test_dnh_evil(capsys):
         # If the function exits then that is good!
         with pytest.raises(SystemExit) as excinfo:
             crassh.do_no_harm(cmd)
+            out, err = capsys.readouterr()
+            print("\n *** Next/Failed Command: \"%s\" *** " % cmd)
         # https://pytest.org/latest/assert.html#assertions-about-expected-exceptions
         # print(excinfo.value)
         # The exit value must be 0
