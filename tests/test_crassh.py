@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 import crassh
-import os, pytest, stat
+import os, pytest, stat, sys
 
+CUR_DIR = os.path.dirname(__file__)
+#TEST_DIR = os.path.join(CUR_DIR, 'tests')
+
+cisco = pytest.mark.skipif(
+    not pytest.config.getoption("--cisco"),
+    reason="need --cisco option to run Cisco IOS Tests"
+)
 
 def test_help(tmpdir, capsys):
     # This test is mainly used for syntax validation. If the help is printed and written to a text file then the script syntax is both Python 2 & Python 3.
@@ -44,3 +51,21 @@ def test_isotherreadable(tmpdir):
     test_othfile.write("text")
     os.chmod(str(test_othfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH)
     assert crassh.isotherreadable(str(test_othfile)) == True
+    
+@cisco
+def test_cisco_shver(capsys):
+    global sys
+    SwitchFile = CUR_DIR + "/cisco_shver_s.txt"
+    CmdFile = CUR_DIR + "/cisco_shver_cmd.txt"
+    OutputFile = CUR_DIR + "/cisco_shver_output.txt"
+    f=open(OutputFile,'r')
+    ExpectedOutput = f.readlines()
+    #ExpectedOutput = f.read()
+    sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile]
+    crassh.main()
+    out, err = capsys.readouterr()
+    counter = 0
+    for line in out.splitlines():
+        #print("%s : %s" % (counter,line))
+        assert ExpectedOutput[counter].strip() == line.strip()
+        counter += 1
