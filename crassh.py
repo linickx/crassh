@@ -89,7 +89,7 @@ def do_no_harm(command):
 
     harmful = False
 
-    if re.match("reload", command):
+    if re.match("rel", command):
         harmful = True
         error = "reload"
 
