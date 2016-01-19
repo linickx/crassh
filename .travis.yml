@@ -1,21 +1,32 @@
+sudo: required
 language: python
+# Secure Environment Variables
+env:
+  secure: PAsZwS8foVUSteR87Zjsi97TLfNOWvJA6sWdPt9+1pnEmEuJRt4qwPu4jmpMx+0BdH6wbPbNwhmZUV/iNsjp0OffY+EZTyr+giV/OxaOT8ZdKWjingLdk+Gwz3fobE1JhqsN58eWxZA5vab3hUXou1Sz+8SQXVov2dMRx0MC3ls=
 # 2.6 for CentOS, 3.5 for OSX
 python:
-  - "2.6"
-  - "3.5"
-# http://docs.travis-ci.com/user/multi-os/
-os:
- - osx
- - linux
-matrix:
-  allow_failures:
-    - os: osx
-# Deps
+- "2.6"
+- "3.5"
+# Setup the env
+before_install:
+- ifconfig -a
+- sudo /sbin/modprobe tun
+- sudo apt-get update -qq
+- sudo apt-get install -qq dynamips
+- wget -q $IOS_URL
+- ls -l
+- ifconfig -a
+- sudo dynamips -s 0:0:tap:tap0 -P 3725 -T 2001 --idle-pc=0x607081e0 -C tests/r1.txt c3725-advsecurityk9-mz.124-25c.bin &
+- sleep 90
+- sudo ifconfig tap0 inet 1.1.1.1 netmask 255.255.255.252
+- ifconfig -a
+# install the test (crassh)
 install:
-  - pip install .
-  - pip install paramiko
-# command to run tests
-script: py.test
+- ping -c 4 1.1.1.2
+- pip install .
+- pip install paramiko
+# command to run tests (--cisco enables the dynamips tests)
+script: py.test --cisco
 # Restrict to Test branch
 branches:
   only:
