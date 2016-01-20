@@ -6,7 +6,7 @@ python:
 - '3.5'
 # Secure Environment Variables
 env:
-  secure: FicEBvDV/9nITCJW0Sh4rxadBAqJqdIUCcvjwPibPOzoGGaPO8tcjmudBg3jpCIEzlQ7X1KDtTetHpgTE62mLg67Mw600AQP248w/iVb8YiAPkQ8v/SOGyyGh7sbRb9pJIW6Gscy7HmrFKhbxWAAZop7uWg+bi/fPVfTkylgfYU=
+  secure: b1M8f4Zc2iKTTmJOKah0MQPv9Qiv/p4ExOkyzoEW04sX7uiEQ/d5sIJBCdDAFA3NlrNTAiOFf5jFj6UEHEqr8y0XzRYgQdYfi1Sy7rW0I5p8MIqbOoJExC4epEQAaWAQ0noXIR/Hgb7jr33VA5VFYiD5mkR2zCmtI9mvF9pdMpw=
 # Setup the env
 before_install:
 - ifconfig -a
