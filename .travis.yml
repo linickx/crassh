@@ -1,12 +1,12 @@
 sudo: required
 language: python
-# Secure Environment Variables
-env:
-  secure: PAsZwS8foVUSteR87Zjsi97TLfNOWvJA6sWdPt9+1pnEmEuJRt4qwPu4jmpMx+0BdH6wbPbNwhmZUV/iNsjp0OffY+EZTyr+giV/OxaOT8ZdKWjingLdk+Gwz3fobE1JhqsN58eWxZA5vab3hUXou1Sz+8SQXVov2dMRx0MC3ls=
 # 2.6 for CentOS, 3.5 for OSX
 python:
-- "2.6"
-- "3.5"
+- '2.6'
+- '3.5'
+# Secure Environment Variables
+env:
+  secure: FicEBvDV/9nITCJW0Sh4rxadBAqJqdIUCcvjwPibPOzoGGaPO8tcjmudBg3jpCIEzlQ7X1KDtTetHpgTE62mLg67Mw600AQP248w/iVb8YiAPkQ8v/SOGyyGh7sbRb9pJIW6Gscy7HmrFKhbxWAAZop7uWg+bi/fPVfTkylgfYU=
 # Setup the env
 before_install:
 - ifconfig -a
@@ -30,4 +30,4 @@ script: py.test --cisco
 # Restrict to Test branch
 branches:
   only:
-      - tests-beta
+  - tests-beta
