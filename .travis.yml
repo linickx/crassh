@@ -7,24 +7,25 @@ python:
 # Secure Environment Variables
 env:
   secure: b1M8f4Zc2iKTTmJOKah0MQPv9Qiv/p4ExOkyzoEW04sX7uiEQ/d5sIJBCdDAFA3NlrNTAiOFf5jFj6UEHEqr8y0XzRYgQdYfi1Sy7rW0I5p8MIqbOoJExC4epEQAaWAQ0noXIR/Hgb7jr33VA5VFYiD5mkR2zCmtI9mvF9pdMpw=
-# Setup the env
+# Setup the env (test dependencies)
 before_install:
 - ifconfig -a
 - sudo /sbin/modprobe tun
 - sudo apt-get update -qq
 - sudo apt-get install -qq dynamips
+# install the crassh & dep
+install:
+- pip install .
+- pip install paramiko
+# Get ready for the test script
+before_script:
 - wget -q $IOS_URL
 - ls -l
-- ifconfig -a
 - sudo dynamips -s 0:0:tap:tap0 -P 3725 -T 2001 --idle-pc=0x607081e0 -C tests/r1.txt c3725-advsecurityk9-mz.124-25c.bin &
 - sleep 90
 - sudo ifconfig tap0 inet 1.1.1.1 netmask 255.255.255.252
 - ifconfig -a
-# install the test (crassh)
-install:
 - ping -c 4 1.1.1.2
-- pip install .
-- pip install paramiko
 # command to run tests (--cisco enables the dynamips tests)
 script: py.test --cisco
 # Restrict to Test branch
