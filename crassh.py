@@ -131,11 +131,79 @@ def isotherreadable(filepath):
   st = os.stat(filepath)
   return bool(st.st_mode & stat.S_IROTH)
 
+# Get Connect and get Hostname of Cisco Device
+def connect(device, username, password, enable):
+    
+    global remote_conn_pre, remote_conn
+    
+    """
+        https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
+
+    """
+
+    remote_conn_pre = paramiko.SSHClient()
+
+    remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    print("Connecting to %s ... " % device)
+
+    try:
+        # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
+        remote_conn_pre.connect(device, username=username, password=password, allow_agent=False, look_for_keys=False)
+    except paramiko.AuthenticationException as e:
+        print("Authentication Error: %s" % e)
+        sys.exit()
+    except paramiko.SSHException as e:
+        print("SSH Error: %s" % e)
+        sys.exit()
+    except socket.error as e:
+        print("Connection Failed: %s" % e)
+        sys.exit()
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        sys.exit()
+
+    remote_conn = remote_conn_pre.invoke_shell()
+
+    # Flush buffer.
+    output = remote_conn.recv(1000)
+
+    if enable:
+        remote_conn.send("enable\n")
+        time.sleep(0.5)
+        remote_conn.send(enable_password + "\n")
+
+    remote_conn.send("terminal length 0\n")
+    time.sleep(0.5)
+    # Flush buffer.
+    output = remote_conn.recv(1000)
+
+    # Clear the Var.
+    output = ""
+
+    remote_conn.send("show run | inc hostname \n")
+    while not "#" in output:
+        # update receive buffer
+            output += remote_conn.recv(1024).decode('utf-8')
+
+    for subline in output.splitlines():
+        thisrow = subline.split()
+        try:
+            gotdata = thisrow[1]
+            if thisrow[0] == "hostname":
+                hostname = thisrow[1]
+                prompt = hostname + "#"
+        except IndexError:
+            gotdata = 'null'
+            
+    return hostname
+
+
 # Main Code Block
 def main():
     
     # import Global Vars
-    global input, remote_conn
+    global input, remote_conn, remote_conn_pre
     
     # Main Vars (local scope)
     switches = []
@@ -306,65 +374,8 @@ def main():
     """
 
     for switch in switches:
-        """
-            https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
-
-        """
-
-        remote_conn_pre = paramiko.SSHClient()
-
-        remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        print("Connecting to %s ... " % switch)
-
-        try:
-            # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
-            remote_conn_pre.connect(switch, username=username, password=password, allow_agent=False, look_for_keys=False)
-        except paramiko.AuthenticationException as e:
-            print("Authentication Error: %s" % e)
-            sys.exit()
-        except paramiko.SSHException as e:
-            print("SSH Error: %s" % e)
-            sys.exit()
-        except socket.error as e:
-            print("Connection Failed: %s" % e)
-            sys.exit()
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            sys.exit()
-
-        remote_conn = remote_conn_pre.invoke_shell()
-
-        # Flush buffer.
-        output = remote_conn.recv(1000)
-
-        if enable:
-            remote_conn.send("enable\n")
-            time.sleep(0.5)
-            remote_conn.send(enable_password + "\n")
-
-        remote_conn.send("terminal length 0\n")
-        time.sleep(0.5)
-        # Flush buffer.
-        output = remote_conn.recv(1000)
-
-        # Clear the Var.
-        output = ""
-
-        remote_conn.send("show run | inc hostname \n")
-        while not "#" in output:
-            # update receive buffer
-                output += remote_conn.recv(1024).decode('utf-8')
-
-        for subline in output.splitlines():
-            thisrow = subline.split()
-            try:
-                gotdata = thisrow[1]
-                if thisrow[0] == "hostname":
-                    hostname = thisrow[1]
-                    prompt = hostname + "#"
-            except IndexError:
-                gotdata = 'null'
+        
+        hostname = connect(switch, username, password, enable)
 
         # Write the output to a file (optional) - prepare file + filename before CMD loop
         if writeo:

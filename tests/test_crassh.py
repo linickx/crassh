@@ -55,7 +55,7 @@ def test_isotherreadable(tmpdir):
     assert crassh.isotherreadable(str(test_othfile)) == True
     
 @cisco
-def test_cisco_shver(capsys):
+def test_cisco_main_shver(capsys):
     global sys
     SwitchFile = CUR_DIR + "/cisco_shver_s.txt"
     CmdFile = CUR_DIR + "/cisco_shver_cmd.txt"
@@ -71,3 +71,16 @@ def test_cisco_shver(capsys):
         #print("%s : %s" % (counter,line))
         assert ExpectedOutput[counter].strip() == line.strip()
         counter += 1
+
+@cisco
+def test_cisco_connect():
+    # Check that connection funtion returns expected hostname
+
+    device = "1.1.1.2"
+    username = "nick"
+    password = "nick"
+    enable = ""
+
+    hostname = crassh.connect(device, username, password, enable)
+    
+    assert hostname == "r1"
