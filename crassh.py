@@ -37,6 +37,9 @@ except NameError:
 
 # # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
 def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
+    
+    global remote_conn, remote_conn_pre
+    
     # Start with empty var & loop
     output = ""
     keeplooping = True
@@ -198,12 +201,15 @@ def connect(device, username, password, enable):
             
     return hostname
 
+def disconnect():
+    global remote_conn_pre
+    remote_conn_pre.close()
 
 # Main Code Block
 def main():
     
     # import Global Vars
-    global input, remote_conn, remote_conn_pre
+    global input
     
     # Main Vars (local scope)
     switches = []
@@ -425,7 +431,7 @@ def main():
 
 
         # Disconnect from SSH
-        remote_conn_pre.close()
+        disconnect()
 
         if writeo:
             print("Switch %s done, output: %s" % (switch, filename))
