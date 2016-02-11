@@ -75,12 +75,10 @@ def test_cisco_main_shver(capsys):
 @cisco
 def test_cisco_connect():
     # Check that connection funtion returns expected hostname
-
     device = "1.1.1.2"
     username = "nick"
     password = "nick"
     enable = ""
-
     hostname = crassh.connect(device, username, password, enable)
-    
+    crassh.disconnect()
     assert hostname == "r1"
