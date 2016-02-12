@@ -8,4 +8,5 @@ setup(name='CraSSH',
       url='https://github.com/linickx/crassh/',
       py_modules=['crassh'],
       install_requires=['paramiko >= 1.10'],
+      scripts=['bin/crassh'],
      )
