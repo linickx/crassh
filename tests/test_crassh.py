@@ -55,6 +55,21 @@ def test_isotherreadable(tmpdir):
     test_othfile.write("text")
     os.chmod(str(test_othfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH)
     assert crassh.isotherreadable(str(test_othfile)) == True
+
+def test_readtxtfile(tmpdir):
+    # Test that a text file is read and stripped correctly.
+    test_input = ["1.1.1.1", " 1.1.1.2", "1.1.1.3 ", " 1.1.1.4 "]
+    ExpectedOutput = ["1.1.1.1", "1.1.1.2", "1.1.1.3", "1.1.1.4" ]
+    test_file = tmpdir.mkdir("sub").join("file.txt")
+    f = open(str(test_file),'a')
+    for y in test_input:
+        print(y)
+        f.write(y + "\n")
+    counter = 0
+    Output = crassh.readtxtfile(str(test_file))
+    for x in Output:
+        assert x == ExpectedOutput[counter]
+        counter += 1    
     
 @cisco
 def test_cisco_main_shver(capsys):
