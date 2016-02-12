@@ -135,6 +135,23 @@ def isotherreadable(filepath):
   st = os.stat(filepath)
   return bool(st.st_mode & stat.S_IROTH)
 
+# Read lines of a text file
+def readtxtfile(filepath):
+    
+    if os.path.isfile(filepath) == False:
+        print("Cannot find %s" % filepath)
+        sys.exit()
+    # setup return array
+    txtarray = []
+    # open our file
+    f=open(filepath,'r')
+    # Loop thru the array
+    for line in f:
+        # Append each line to array
+        txtarray.append(line.strip())
+    
+    return txtarray
+
 # Get Connect and get Hostname of Cisco Device
 def connect(device, username, password, enable):
     
@@ -238,30 +255,11 @@ def main():
     for o, a in myopts:
         if o == '-s':
             sfile=a
-            if os.path.isfile(sfile) == False:
-                print("Cannot find %s" % sfile)
-                sys.exit()
-            # open our file
-            f=open(sfile,'r')
-            # Loop thru the array
-            for fline in f:
-                # Assume one switch per line
-                thisswitch = fline.strip()
-                switches.append(thisswitch)
+            switches = readtxtfile(sfile)
 
         if o == '-c':
             cfile=a
-            if os.path.isfile(cfile) == False:
-                print("Cannot find %s" % cfile)
-                sys.exit()
-            # open our file
-            f=open(cfile,'r')
-            # Loop thru the array
-            for fline in f:
-                # Assume one switch per line (ignore blank lines)
-                thiscmd = fline.strip()
-                if thiscmd[:-1]:
-                    commands.append(thiscmd)
+            commands = readtxtfile(cfile)
 
         if o == '-t':
             bail_timeout=int(a)
