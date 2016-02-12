@@ -69,7 +69,19 @@ def test_readtxtfile(tmpdir):
     Output = crassh.readtxtfile(str(test_file))
     for x in Output:
         assert x == ExpectedOutput[counter]
-        counter += 1    
+        counter += 1
+
+def test_readauthfile(tmpdir):
+    # Test reading credentials from a file
+    test_file = tmpdir.mkdir("sub").join("credz.txt")
+    f = open(str(test_file),'a')
+    f.write(" username:nick\n")
+    f.write(" password :  pass  \n")
+    f.close()
+    os.chmod(str(test_file), stat.S_IRUSR | stat.S_IWUSR)
+    username, password = crassh.readauthfile(str(test_file))
+    assert username == "nick"
+    assert password == "pass"
     
 @cisco
 def test_cisco_main_shver(capsys):
