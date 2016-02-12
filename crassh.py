@@ -149,8 +149,30 @@ def readtxtfile(filepath):
     for line in f:
         # Append each line to array
         txtarray.append(line.strip())
-    
     return txtarray
+
+# Read a Crassh Authentication File
+def readauthfile(filepath):
+    
+    if os.path.isfile(filepath) == False:
+        print("Cannot find %s" % filepath)
+        sys.exit()
+        
+    f=open(filepath,'r')
+    # Loop thru the array
+    for fline in f:
+        thisline = fline.strip().split(":")
+        if thisline[0].strip() == "username":
+            username = thisline[1].strip()
+        if thisline[0].strip() == "password":
+            if isgroupreadable(filepath):
+                print("** Password not read from %s - file is GROUP readable ** " % filepath)
+            else:
+                if isotherreadable(filepath):
+                    print("** Password not read from %s - file is WORLD readable **"% filepath)
+                else:
+                    password = thisline[1].strip()
+                    return username, password
 
 # Get Connect and get Hostname of Cisco Device
 def connect(device, username, password, enable):
@@ -296,20 +318,11 @@ def main():
 
     # See if we have an Authentication File
     if os.path.isfile(crasshrc) == True:
-        f=open(crasshrc,'r')
-        # Loop thru the array
-        for fline in f:
-            thisline = fline.strip().split(":")
-            if thisline[0].strip() == "username":
-                username = thisline[1].strip()
-            if thisline[0].strip() == "password":
-                if isgroupreadable(crasshrc):
-                    print("** Password not read from %s - file is GROUP readable ** " % crasshrc)
-                else:
-                    if isotherreadable(crasshrc):
-                        print("** Password not read from %s - file is WORLD readable **"% crasshrc)
-                    else:
-                        password = thisline[1].strip()
+        try:
+            username, password = readauthfile(crasshrc)
+        except:
+            pass
+        
     if sfile == "":
         try:
             iswitch = input("Enter the switch to connect to: ")
