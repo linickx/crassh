@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup
 
-README = open('README.md').read()
+README = open('README.rst').read()
 
 setup(name='CraSSH',
       version='2.02',
