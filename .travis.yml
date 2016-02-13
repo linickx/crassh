@@ -28,3 +28,6 @@ before_script:
 - ping -c 4 1.1.1.2
 # command to run tests (--cisco enables the dynamips tests)
 script: py.test --cisco
+branches:
+  except:
+    - docs
