@@ -175,7 +175,7 @@ def readauthfile(filepath):
                     return username, password
 
 # Get Connect and get Hostname of Cisco Device
-def connect(device, username, password, enable):
+def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable = False, enable_password = "cisco"):
     
     global remote_conn_pre, remote_conn
     
