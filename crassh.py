@@ -26,7 +26,7 @@ import os, stat
 import re
 
 # Version Control in a Variable
-crassh_version = "2.02"
+crassh_version = "2.03"
 
 # Python 2 & 3 input compatibility
 try:
