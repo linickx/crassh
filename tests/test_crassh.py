@@ -1,16 +1,31 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import crassh
-import os, pytest, stat, sys
+"""
+    Nick Bettison
 
+    Python script to test the crassh.py module (library)
+
+    Run py.test for local code testing.
+    Run py.test --cisco for testing code against a Cisco router (IOS Device)
+
+"""
+
+import crassh                   # CraSSH!
+import os, pytest, stat, sys    # Deps
+
+# Current Directory
 CUR_DIR = os.path.dirname(__file__)
-#TEST_DIR = os.path.join(CUR_DIR, 'tests')
 
+# Add Cisco testing option.
 cisco = pytest.mark.skipif(
     not pytest.config.getoption("--cisco"),
     reason="need --cisco option to run Cisco IOS Tests"
 )
+
+"""
+    Function / Code Tests
+"""
 
 def test_help(tmpdir, capsys):
     # This test is mainly used for syntax validation. If the help is printed and written to a text file then the script syntax is both Python 2 & Python 3.
@@ -46,14 +61,14 @@ def test_isgroupreadable(tmpdir):
     # Check out file permission function works - Groups
     test_groupfile = tmpdir.mkdir("sub").join("groupfile.txt")
     test_groupfile.write("text")
-    os.chmod(str(test_groupfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP)
+    os.chmod(str(test_groupfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP) # Chmod 640
     assert crassh.isgroupreadable(str(test_groupfile)) == True
     
 def test_isotherreadable(tmpdir):
     # Check out file permission function works - others 
     test_othfile = tmpdir.mkdir("sub").join("otherfile.txt")
     test_othfile.write("text")
-    os.chmod(str(test_othfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH)
+    os.chmod(str(test_othfile), stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH) # Chmod 604
     assert crassh.isotherreadable(str(test_othfile)) == True
 
 def test_readtxtfile(tmpdir):
@@ -78,23 +93,25 @@ def test_readauthfile(tmpdir):
     f.write(" username:nick\n")
     f.write(" password :  pass  \n")
     f.close()
-    os.chmod(str(test_file), stat.S_IRUSR | stat.S_IWUSR)
+    os.chmod(str(test_file), stat.S_IRUSR | stat.S_IWUSR) # Chmod 600
     username, password = crassh.readauthfile(str(test_file))
     assert username == "nick"
     assert password == "pass"
-    
+
+"""
+    Tests against a Cisco Switch, router, device, whatever!
+"""
 @cisco
 def test_cisco_main_shver(capsys):
     global sys
-    SwitchFile = CUR_DIR + "/cisco_shver_s.txt"
-    CmdFile = CUR_DIR + "/cisco_shver_cmd.txt"
-    OutputFile = CUR_DIR + "/cisco_shver_output.txt"
+    SwitchFile = CUR_DIR + "/cisco_shver_s.txt"         # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_shver_cmd.txt"          # The Command to run "show ver"
+    OutputFile = CUR_DIR + "/cisco_shver_output.txt"    # The expected output (from a "show ver")
     f=open(OutputFile,'r')
     ExpectedOutput = f.readlines()
-    #ExpectedOutput = f.read()
-    sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile]
+    sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile] # ./crassh -U nick -P nick -p -s SwitchFile -c CmdFile
     crassh.main()
-    out, err = capsys.readouterr()
+    out, err = capsys.readouterr() # Capture output
     counter = 0
     for line in out.splitlines():
         #print("%s : %s" % (counter,line))
