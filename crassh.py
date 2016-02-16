@@ -15,15 +15,14 @@
 """
 
 # Import libs
-import getpass
-import paramiko
-import socket
-import time
-import datetime
-from io import StringIO
-import sys, getopt
-import os, stat
-import re
+import getpass              # Hide Password Entry
+import paramiko             # SSH 
+import socket               # TCP/Network/Socket 
+import time, datetime       # Date & Times
+from io import StringIO     # 
+import sys, getopt          # Command line options
+import os, stat             # File system
+import re                   # Regex
 
 # Version Control in a Variable
 crassh_version = "2.03"
@@ -34,9 +33,12 @@ try:
 except NameError:
     pass
 
-# Functions
+"""
+    Functions
+"""
 
-# # http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
+# http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
+# Sending commands to a switch, router, device, whatever!
 def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
     
     global remote_conn, remote_conn_pre
@@ -84,8 +86,10 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
 # Check Commands for dangerous things
 def do_no_harm(command):
 
+    # Innocent until proven guilty
     harmful = False
 
+    # Regex match each "command"
     if re.match("rel", command):
         harmful = True
         error = "reload"
@@ -105,6 +109,7 @@ def do_no_harm(command):
         print("\n To force the use of dangerous things, use -X")
         print_help()
 
+# Simple help print and exit
 def print_help(exit = 0):
     global crassh_version
     
@@ -127,17 +132,19 @@ def print_help(exit = 0):
     sys.exit(exit)
 
 # http://stackoverflow.com/questions/1861836/checking-file-permissions-in-linux-with-python
+# Check if file is group readable
 def isgroupreadable(filepath):
   st = os.stat(filepath)
   return bool(st.st_mode & stat.S_IRGRP)
 
+# Check if file is "other" readable
 def isotherreadable(filepath):
   st = os.stat(filepath)
   return bool(st.st_mode & stat.S_IROTH)
 
 # Read lines of a text file
 def readtxtfile(filepath):
-    
+    # Check if file exists
     if os.path.isfile(filepath) == False:
         print("Cannot find %s" % filepath)
         sys.exit()
@@ -149,15 +156,16 @@ def readtxtfile(filepath):
     for line in f:
         # Append each line to array
         txtarray.append(line.strip())
+    # Return results
     return txtarray
 
 # Read a Crassh Authentication File
 def readauthfile(filepath):
-    
+    # Check if file exists
     if os.path.isfile(filepath) == False:
         print("Cannot find %s" % filepath)
         sys.exit()
-        
+    # Open file
     f=open(filepath,'r')
     # Loop thru the array
     for fline in f:
@@ -177,6 +185,7 @@ def readauthfile(filepath):
 # Get Connect and get Hostname of Cisco Device
 def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable = False, enable_password = "cisco"):
     
+    # Global variables - Paramiko Stuff.
     global remote_conn_pre, remote_conn
     
     """
@@ -184,8 +193,9 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
 
     """
 
+    # Create paramiko object
     remote_conn_pre = paramiko.SSHClient()
-
+    # Change default paramiko object settings
     remote_conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     print("Connecting to %s ... " % device)
@@ -206,16 +216,19 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
         print("Unexpected error:", sys.exc_info()[0])
         sys.exit()
 
+    # Connected! (invoke_shell)
     remote_conn = remote_conn_pre.invoke_shell()
 
     # Flush buffer.
     output = remote_conn.recv(1000)
 
+    # If we have enable password, send it.
     if enable:
         remote_conn.send("enable\n")
         time.sleep(0.5)
         remote_conn.send(enable_password + "\n")
 
+    # Disable <-- More --> on Output
     remote_conn.send("terminal length 0\n")
     time.sleep(0.5)
     # Flush buffer.
@@ -224,6 +237,7 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
     # Clear the Var.
     output = ""
 
+    # Ok, let's find the device hostname
     remote_conn.send("show run | inc hostname \n")
     while not "#" in output:
         # update receive buffer
@@ -238,25 +252,31 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
                 prompt = hostname + "#"
         except IndexError:
             gotdata = 'null'
-            
+    
+    # Found it! Return it!
     return hostname
 
+# Crassh wrapper for paramiko disconnect
 def disconnect():
     global remote_conn_pre
     remote_conn_pre.close()
 
-# Main Code Block
+"""
+    Main Code Block
+"""
 def main():
     
     # import Global Vars
     global input
     
     # Main Vars (local scope)
-    switches = []
-    commands = []
+    switches = [] # Switches, devices, routers, whatever!
+    commands = [] 
     filenames = []
-    sfile=''
-    cfile=''
+    sfile='' # Switch File
+    cfile='' # Command File
+    
+    # Default variables (values)
     play_safe = True
     enable = False
     delay_command = False
@@ -322,7 +342,8 @@ def main():
             username, password = readauthfile(crasshrc)
         except:
             pass
-        
+    
+    # Do we have any switches?
     if sfile == "":
         try:
             iswitch = input("Enter the switch to connect to: ")
@@ -330,6 +351,7 @@ def main():
         except:
             sys.exit()
 
+    # Do we have any commands?
     if cfile == "":
         try:
             icommand = input("The switch command you want to run: ")
@@ -422,6 +444,7 @@ def main():
             # Print progress
             try:
                 counter
+                # Random calculation to find 10 percent
                 if (counter % 10) == 0:
                     completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
                     if int(completion) > 9:
@@ -453,7 +476,7 @@ def main():
         # Sleep between SSH connections
         time.sleep(1)
 
-    print("\n")
+    print("\n") # Random line break
 
     print(" ********************************** ")
     if writeo:
