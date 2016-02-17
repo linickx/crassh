@@ -6,7 +6,15 @@
 Welcome to C.R.A.SSH - Cisco Remote Automation via SSH's documentation!
 =======================================================================
 
+
+Disclaimer
+----------
+
+The word *Cisco* is used as a description because this script should work with any Cisco IOS device. Cisco is a registered trademark of Cisco Systems Inc; this script is not associated, endorsed, supported or affiliated in any way with Cisco and none of these are implied.
+
+
 Contents:
+---------
 
 .. toctree::
    :maxdepth: 2
