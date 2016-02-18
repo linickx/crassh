@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-"""
-    Nick Bettison
-
-    Python script to automate running commands on switches.
-
+"""Python script to automate running commands on switches.
     Cisco Remote Automation via Secure Shell... or C.R.A.SSH for short!
-
-    Use the -h for help
-
-    - www.linickx.com
-
+    
+.. currentmodule:: crassh
+.. moduleauthor:: Nick Bettison - www.linickx.com
 """
 
 # Import libs
@@ -37,10 +31,22 @@ except NameError:
     Functions
 """
 
-# http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
-# Sending commands to a switch, router, device, whatever!
 def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
-    
+    """Sending commands to a switch, router, device, whatever!
+
+        Args:
+           command (str):  The Command you wish to run on the device.
+           
+           hostname (str): The hostname of the device (*expected in the* ``prompt``).
+           
+           bail_timeout (int): How long to wait for ``command`` to finish before giving up.
+
+        Returns:
+           str.  A text blob from the device, including line breaks.
+
+
+        REF: http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
+    """
     global remote_conn, remote_conn_pre
     
     # Start with empty var & loop
@@ -83,8 +89,23 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
 
     return output
 
-# Check Commands for dangerous things
 def do_no_harm(command):
+    """Check Commands for dangerous things
+
+    Args:
+       command (str):  The Command you wish to run on the device.
+
+    Returns:
+       Nothing
+
+    This function will ``sys.exit()`` if an *evil* command is found
+
+    >>> crassh.do_no_harm("show ver")
+    >>>
+
+    So, good commands just pass through with no response... maybe I should oneday make it a True/False kind of thing.
+
+    """
 
     # Innocent until proven guilty
     harmful = False
@@ -111,6 +132,18 @@ def do_no_harm(command):
 
 # Simple help print and exit
 def print_help(exit = 0):
+    """Prints the Help for the CLI tool
+
+    Args:
+       exit (int):  Exit Code
+
+    Returns:
+       None
+
+    When called this function will ``sys.exit()``
+
+    """
+
     global crassh_version
     
     print("\n Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
@@ -131,19 +164,66 @@ def print_help(exit = 0):
     print(" ")
     sys.exit(exit)
 
-# http://stackoverflow.com/questions/1861836/checking-file-permissions-in-linux-with-python
-# Check if file is group readable
 def isgroupreadable(filepath):
-  st = os.stat(filepath)
-  return bool(st.st_mode & stat.S_IRGRP)
+    """Checks if a file is *Group* readable
 
-# Check if file is "other" readable
+    Args:
+       filepath (str):  Full path to file
+
+    Returns:
+       bool.  True/False
+
+    Example:
+
+    >>> print(str(isgroupreadable("file.txt")))
+    True
+
+    REF: http://stackoverflow.com/questions/1861836/checking-file-permissions-in-linux-with-python
+
+    """
+
+    st = os.stat(filepath)
+    return bool(st.st_mode & stat.S_IRGRP)
+
 def isotherreadable(filepath):
-  st = os.stat(filepath)
-  return bool(st.st_mode & stat.S_IROTH)
+    """Checks if a file is *Other* readable
 
-# Read lines of a text file
+    Args:
+       filepath (str):  Full path to file
+
+    Returns:
+       bool.  True/False
+
+    Example:
+
+    >>> print(str(isotherreadable("file.txt")))
+    True
+
+    """
+
+    st = os.stat(filepath)
+    return bool(st.st_mode & stat.S_IROTH)
+
 def readtxtfile(filepath):
+    """Read lines of a text file into an array
+    Each line is stripped of whitepace.
+    
+
+    Args:
+       filepath (str):  Full path to file
+
+    Returns:
+       array.  Contents of file
+
+    Example:
+
+    >>> print(readtxtfile("./routers.txt"))
+    1.1.1.1
+    1.1.1.2
+    1.1.1.3
+
+    
+    """
     # Check if file exists
     if os.path.isfile(filepath) == False:
         print("Cannot find %s" % filepath)
@@ -161,6 +241,29 @@ def readtxtfile(filepath):
 
 # Read a Crassh Authentication File
 def readauthfile(filepath):
+    """Read C.R.A.SSH Authentication File
+    
+    The file format is a simple, one entry per line, colon separated affair::
+    
+        username: nick
+        password: cisco
+
+    Args:
+       filepath (str):  Full path to file
+
+    Returns:
+       tuple.  ``username`` and ``password``
+
+    Example:
+
+    >>> username, password = readauthfile("~/.crasshrc")
+    >>> print(username)
+    nick
+    >>> print(password)
+    cisco
+
+    """
+
     # Check if file exists
     if os.path.isfile(filepath) == False:
         print("Cannot find %s" % filepath)
@@ -182,14 +285,42 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-# Get Connect and get Hostname of Cisco Device
 def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable = False, enable_password = "cisco"):
+    """Connect and get Hostname of Cisco Device
+    
+    This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device. The function creates two global variables ``remote_conn_pre`` and ``remote_conn`` which are the paramiko objects for direct manipulation if necessary.
+    
+    Args:
+       device (str):  IP Address or Fully Qualifed Domain Name of Device
+       
+       username (str): Username for SSH Authentication
+       
+       password (str): Password for SSH Authentication
+       
+       enable (bool): Is enable going to be needed? 
+       
+       enable_password (str): The enable password
+
+    Returns:
+       str.  The hostname of the device
+
+    Example:
+
+    >>> hostname = connect("10.10.10.10", "nick", "cisco")
+    >>> print(hostname)
+    r1
+    
+    REF: 
+        * https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
+        * http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
+
+    """
     
     # Global variables - Paramiko Stuff.
     global remote_conn_pre, remote_conn
     
     """
-        https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
+        
 
     """
 
@@ -200,8 +331,7 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
 
     print("Connecting to %s ... " % device)
 
-    try:
-        # http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
+    try: 
         remote_conn_pre.connect(device, username=username, password=password, allow_agent=False, look_for_keys=False)
     except paramiko.AuthenticationException as e:
         print("Authentication Error: %s" % e)
@@ -256,15 +386,24 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
     # Found it! Return it!
     return hostname
 
-# Crassh wrapper for paramiko disconnect
 def disconnect():
+    """Disconnect an SSH Session
+    
+    Crassh wrapper for paramiko disconnect
+    
+    No Argumanets, disconnects the current global variable ``remote_conn_pre``
+    """
+    
     global remote_conn_pre
     remote_conn_pre.close()
 
-"""
-    Main Code Block
-"""
 def main():
+    """Main Code Block
+    
+    This is the main script that Network Administrators will run.
+    
+    No Argumanets. Input is used for missing CLI Switches.
+    """
     
     # import Global Vars
     global input

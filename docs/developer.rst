@@ -4,4 +4,5 @@ Developer Guide
 xxx
 
 
-.. function:: crassh.send_command
+.. automodule:: crassh
+    :members:
