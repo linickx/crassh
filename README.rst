@@ -1,16 +1,16 @@
 C.R.A.SSH 
 =========
-C.R.A.SSH stands for *Cisco Remote Automation via SSH*, it is a python script for automating commands on Cisco devices.
+C.R.A.SSH (*crassh*) stands for *Cisco Remote Automation via SSH*, it is a python script for automating commands on Cisco devices.
 
 |build-status|
 
+Crassh can be used in two ways: 
+* a stand alone script that users can run to perform actions on Cisco devices
+* a module developers can import and leverage in their own scripts
 
+The official documentation is available on http://crassh.readthedocs.org
 
-
-AoB
----
-
-I've written a `tutorial here`_ on how to use crassh. Future `news about crassh can be found here`_.
+My `personal blog`_ contains a `tutorial here`_ on how to use crassh in standalone mode and an `initial example`_ on how to use the crassh module. Future `news about crassh can be found here`_.
 
 
 
@@ -22,7 +22,9 @@ The word *Cisco* is used as a description because this script should work with a
 
 .. Links
 
+.. _`personal blog`: http://www.linickx.com
 .. _`tutorial here`: http://www.linickx.com/3980/automating-cisco-commands-with-c-r-a-ssh
+.. _`initial example`: http://linickx.com/pip-install-crassh
 .. _`news about crassh can be found here`: http://www.linickx.com/tag/crassh
 
 .. |build-status| image:: https://travis-ci.org/linickx/crassh.svg
