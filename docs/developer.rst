@@ -22,17 +22,17 @@ An example of *doing something* is writing an auditing script; the `following ex
     # Loop
     for device in routers:
 
-    hostname = crassh.connect(device, username, password)
-    output = crassh.send_command("show run | inc snmp-server community", hostname)
-    crassh.disconnect()
+        hostname = crassh.connect(device, username, password)
+        output = crassh.send_command("show run | inc snmp-server community", hostname)
+        crassh.disconnect()
 
-    # Split the output by spaces so we can search the response
-    words = output.split()
+        # Split the output by spaces so we can search the response
+        words = output.split()
 
-    # Look for "public" in the output
-    for x in words:
-        if x == "public":
-            print("DANGER: Public SNMP Community set on %s [%s]" % (hostname, device))
+        # Look for "public" in the output
+        for x in words:
+            if x == "public":
+                print("DANGER: Public SNMP Community set on %s [%s]" % (hostname, device))
 
 
 
