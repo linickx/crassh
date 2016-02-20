@@ -28,7 +28,7 @@ If you have an idea to improve crassh, that's great!
 2. All new functions will require `a test`_  ( *and shouldn't break* `existing tests`_ )
 3. All new functions will require `documentation`_ , i.e. comments that work with sphinx-autodoc.
 
-Please ask if you have any problems with these. Before submitting the PR, please also consider if you need to submit a PR. Craash is a `paramiko` wrapper for SSH onto Cisco IOS devices, crassh is not a PR to Paramiko but a child module that depends on it. Please consider creating your own child module for your feature that can depend on crassh.
+Please ask if you have any problems with these. Before submitting the PR, please also consider if you need to submit a PR. Crassh is a `paramiko` wrapper for SSH onto Cisco IOS devices, crassh is not a PR to Paramiko but a child module that depends on it. Please consider creating your own child module for your feature that can depend on crassh.
 
 Documentation
 -------------
