@@ -8,7 +8,7 @@ Summary:        Cisco IOS SSH library for python
 Group:          Development/Libraries
 License:        GPLv2
 URL:            https://github.com/linickx/crassh/
-Source0:        https://pypi.python.org/packages/source/p/CraSSH/CraSSH-%{version}.tar.gz
+Source0:        https://pypi.python.org/packages/source/C/CraSSH/CraSSH-%{version}.tar.gz
 
 BuildArch:      noarch
 BuildRequires: python-setuptools
