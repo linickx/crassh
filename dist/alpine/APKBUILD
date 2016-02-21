@@ -1,0 +1,32 @@
+# Contributor: Nick Bettison <linickx@gmail.com>
+# Maintainer: Nick Bettison <linickx@gmail.com>
+# REF: http://git.alpinelinux.org/cgit/aports/tree/main/py-paramiko/APKBUILD
+pkgname=py-crassh
+_pkgname=CraSSH
+pkgver=2.03
+pkgrel=1
+pkgdesc="Cisco IOS SSH library for python"
+url="https://github.com/linickx/crassh/"
+arch="noarch"
+license="GPLv2"
+depends="py-paramiko"
+depends_dev=""
+makedepends="python-dev py-setuptools"
+install=""
+source="https://pypi.python.org/packages/source/C/$_pkgname/$_pkgname-$pkgver.tar.gz"
+
+_builddir="$srcdir"/$_pkgname-$pkgver
+build() {
+        cd "$_builddir"
+        python setup.py build || return 1
+}
+
+package() {
+        cd "$_builddir"
+        python setup.py install --prefix=/usr --root="$pkgdir" || return 1
+}
+
+
+md5sums="3ae6ec8febb089b268578cdb4d8eff55  CraSSH-2.03.tar.gz"
+sha256sums="9c475b94d76efa06d26354a7c6cda7ee92fa3313bf8c88b41bb4ed426939bf4d  CraSSH-2.03.tar.gz"
+sha512sums="579664cf73838252b8f295337485c4adfd913a8898e935da6ff31c2f4a4049f1cef93e7d5cb39b63d74cf4113dd020cf8fe4fcb5d94d3416b8757b09a6424d6b  CraSSH-2.03.tar.gz"
