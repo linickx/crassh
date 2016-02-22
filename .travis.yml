@@ -21,10 +21,10 @@ install:
 before_script:
 - wget -q $IOS_URL
 - ls -l
-- sudo dynamips -s 0:0:tap:tap0 -P 3725 -T 2001 --idle-pc=0x607081e0 -C tests/r1.txt c3725-advsecurityk9-mz.124-25c.bin &
+- sudo dynamips -i 1 -s 0:0:tap:tap0 -P 3725 -T 2001 --idle-pc=0x607081e0 -C tests/r1.txt c3725-advsecurityk9-mz.124-25c.bin &
 - r1pid=$!
 - echo $r1pid
-- sudo dynamips -s 0:0:tap:tap1 -P 3725 -T 2002 --idle-pc=0x607081e0 -C tests/r2.txt c3725-advsecurityk9-mz.124-25c.bin &
+- sudo dynamips -i 2 -s 0:0:tap:tap1 -P 3725 -T 2002 --idle-pc=0x607081e0 -C tests/r2.txt c3725-advsecurityk9-mz.124-25c.bin &
 - r2pid=$!
 - echo $r2pid
 - sleep 90
@@ -36,9 +36,10 @@ before_script:
 # command to run tests (--cisco enables the dynamips tests)
 script: 
 - py.test --cisco
+- bin/crassh -h
 # Shutdown Dynamips
-- sudo kill -9 $r1pid
-- sudo kill -9 $r2pid
+- sudo kill -SIGTERM $r1pid
+- sudo kill -SIGTERM $r2pid
 branches:
   except:
     - docs
