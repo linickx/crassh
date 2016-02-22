@@ -10,7 +10,7 @@ boot-end-marker
 !
 logging buffered 4096 debugging
 !
-enable password cisco
+enable password cisco123
 !
 aaa new-model
 !

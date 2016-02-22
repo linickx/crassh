@@ -141,7 +141,7 @@ def test_cisco_connect_enable():
     username = "cisco"
     password = "cisco"
     enable = True
-    enable_password = "cisco"
+    enable_password = "cisco123"
     hostname = crassh.connect(device, username, password, enable, enable_password)
     crassh.disconnect()
     assert hostname == "r1"

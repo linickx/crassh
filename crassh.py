@@ -564,7 +564,10 @@ def main():
 
     for switch in switches:
         
-        hostname = connect(switch, username, password, enable, sysexit=True)
+        if enable:
+            hostname = connect(switch, username, password, enable, enable_password, sysexit=True)
+        else:
+            hostname = connect(switch, username, password, False, "", sysexit=True)
 
         # Write the output to a file (optional) - prepare file + filename before CMD loop
         if writeo:
