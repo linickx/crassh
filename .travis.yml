@@ -22,12 +22,23 @@ before_script:
 - wget -q $IOS_URL
 - ls -l
 - sudo dynamips -s 0:0:tap:tap0 -P 3725 -T 2001 --idle-pc=0x607081e0 -C tests/r1.txt c3725-advsecurityk9-mz.124-25c.bin &
+- r1pid=$!
+- echo $r1pid
+- sudo dynamips -s 0:0:tap:tap1 -P 3725 -T 2002 --idle-pc=0x607081e0 -C tests/r2.txt c3725-advsecurityk9-mz.124-25c.bin &
+- r2pid=$!
+- echo $r2pid
 - sleep 90
 - sudo ifconfig tap0 inet 1.1.1.1 netmask 255.255.255.252
+- sudo ifconfig tap1 inet 1.1.1.5 netmask 255.255.255.252
 - ifconfig -a
 - ping -c 4 1.1.1.2
+- ping -c 4 1.1.1.6
 # command to run tests (--cisco enables the dynamips tests)
-script: py.test --cisco
+script: 
+- py.test --cisco
+# Shutdown Dynamips
+- sudo kill -9 $r1pid
+- sudo kill -9 $r2pid
 branches:
   except:
     - docs

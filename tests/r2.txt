@@ -1,0 +1,88 @@
+version 12.4
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname r2
+!
+boot-start-marker
+boot-end-marker
+!
+logging buffered 4096 debugging
+!
+aaa new-model
+!
+!
+aaa authentication login sshvty local
+aaa authorization exec sshexc local
+!
+aaa session-id common
+memory-size iomem 5
+ip cef
+!
+!
+ip auth-proxy max-nodata-conns 3
+ip admission max-nodata-conns 3
+!
+!
+ip domain name test
+!
+!
+!
+!
+username nick privilege 15 password 0 nick
+!
+!
+ip ssh version 2
+!
+!
+!
+!
+interface FastEthernet0/0
+ ip address 1.1.1.6 255.255.255.252
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+ip forward-protocol nd
+!
+ip http server
+no ip http secure-server
+!
+!
+!
+control-plane
+!
+!
+!
+line con 0
+line aux 0
+line vty 0 4
+ authorization exec sshexc
+ login authentication sshvty
+ transport input telnet ssh
+!
+!
+!
+kron occurrence crypto_key in 1 oneshot
+policy-list crypto_key
+!
+kron policy-list crypto_key
+cli event manager run crypto_key
+!
+event manager applet crypto_key
+event none 
+action 1 cli command "enable"
+action 2 cli command "config t"
+action 3 cli command "crypto key generate rsa general-keys modulus 1024"
+action 4 cli command "exit"
+action 5 cli command "write mem"
+action 6 cli command "end"
+!
+end
+
