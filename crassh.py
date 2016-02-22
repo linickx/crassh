@@ -19,7 +19,7 @@ import os, stat             # File system
 import re                   # Regex
 
 # Version Control in a Variable
-crassh_version = "2.03"
+crassh_version = "2.04"
 
 # Python 2 & 3 input compatibility
 try:
@@ -285,7 +285,7 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable = False, enable_password = "cisco"):
+def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable = False, enable_password = "cisco", sysexit = False):
     """Connect and get Hostname of Cisco Device
     
     This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device. The function creates two global variables ``remote_conn_pre`` and ``remote_conn`` which are the paramiko objects for direct manipulation if necessary.
@@ -300,6 +300,8 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
        enable (bool): Is enable going to be needed? 
        
        enable_password (str): The enable password
+       
+       sysexit (bool): Should the connecton exit the script on failure? 
 
     Returns:
        str.  The hostname of the device
@@ -335,16 +337,24 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
         remote_conn_pre.connect(device, username=username, password=password, allow_agent=False, look_for_keys=False)
     except paramiko.AuthenticationException as e:
         print("Authentication Error: %s" % e)
-        sys.exit()
+        if sysexit:
+            sys.exit()
+        return False
     except paramiko.SSHException as e:
         print("SSH Error: %s" % e)
-        sys.exit()
+        if sysexit:
+            sys.exit()
+        return False
     except socket.error as e:
         print("Connection Failed: %s" % e)
-        sys.exit()
+        if sysexit:
+            sys.exit()
+        return False
     except:
         print("Unexpected error:", sys.exc_info()[0])
-        sys.exit()
+        if sysexit:
+            sys.exit()
+        return False
 
     # Connected! (invoke_shell)
     remote_conn = remote_conn_pre.invoke_shell()
@@ -554,7 +564,7 @@ def main():
 
     for switch in switches:
         
-        hostname = connect(switch, username, password, enable)
+        hostname = connect(switch, username, password, enable, sysexit=True)
 
         # Write the output to a file (optional) - prepare file + filename before CMD loop
         if writeo:
