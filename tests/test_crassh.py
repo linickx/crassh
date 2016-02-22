@@ -24,7 +24,9 @@ cisco = pytest.mark.skipif(
 )
 
 """
-    Function / Code Tests
+    Function / Code Tests - Self Contained.
+    
+    Naming Convention: Test_FunctionName.
 """
 
 def test_help(tmpdir, capsys):
@@ -100,13 +102,17 @@ def test_readauthfile(tmpdir):
 
 """
     Tests against a Cisco Switch, router, device, whatever!
+    
+    Naming Convention: Test_Cisco_FunctionName_x_y:
+    * x = Function option, external reference (optional)
+    * y = Multi (optional)
 """
 @cisco
-def test_cisco_main_shver(capsys):
+def test_cisco_main_shver_multi(capsys):
     global sys
-    SwitchFile = CUR_DIR + "/cisco_shver_s.txt"         # IP Address of Switch/Router (for CLI Input)
-    CmdFile = CUR_DIR + "/cisco_shver_cmd.txt"          # The Command to run "show ver"
-    OutputFile = CUR_DIR + "/cisco_shver_output.txt"    # The expected output (from a "show ver")
+    SwitchFile = CUR_DIR + "/cisco_main_shver_multi_s.txt"         # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"          # The Command to run "show ver"
+    OutputFile = CUR_DIR + "/cisco_main_shver_multi_output.txt"    # The expected output (from a "show ver")
     f=open(OutputFile,'r')
     ExpectedOutput = f.readlines()
     sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile] # ./crassh -U nick -P nick -p -s SwitchFile -c CmdFile
