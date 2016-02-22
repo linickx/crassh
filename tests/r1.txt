@@ -10,6 +10,8 @@ boot-end-marker
 !
 logging buffered 4096 debugging
 !
+enable password cisco
+!
 aaa new-model
 !
 !
@@ -31,6 +33,7 @@ ip domain name test
 !
 !
 username nick privilege 15 password 0 nick
+username cisco password 0 cisco
 !
 !
 ip ssh version 2
