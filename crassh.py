@@ -154,6 +154,7 @@ def print_help(exit = 0):
     print("   -pw is supported, will print the output to screen and write the output to file! [optional]")
     print("   -t set a command timeout in seconds [optional | Default: 60]")
     print("   -X disable \"do no harm\" [optional]")
+    print("   -Q disable \"quit on failure\" [optional]")
     print("   -e set an enable password [optional]")
     print("   -d set a delay (in seconds) between commands [optional]")
     print("   -A set an Authentication file for SSH credentials [optional]")
@@ -432,13 +433,14 @@ def main():
     writeo = True
     printo = False
     bail_timeout = 60
+    sysexit = True
 
     # Default Authentication File Path
     crasshrc = os.path.expanduser("~") + "/.crasshrc"
 
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
-        myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:A:U:P:hpwXe")
+        myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:A:U:P:hpwXeQ")
     except getopt.GetoptError as e:
         print ("\n ERROR: %s" % str(e))
         print_help(2)
@@ -468,6 +470,9 @@ def main():
 
         if o == '-X':
           play_safe = False
+        
+        if o == '-Q':
+          sysexit = False
 
         if o == '-e':
           enable = True
@@ -564,69 +569,72 @@ def main():
 
     for switch in switches:
         
-        if enable:
-            hostname = connect(switch, username, password, enable, enable_password, sysexit=True)
-        else:
-            hostname = connect(switch, username, password, False, "", sysexit=True)
+        try:
+            if enable:
+                hostname = connect(switch, username, password, enable, enable_password, sysexit)
+            else:
+                hostname = connect(switch, username, password, False, "", sysexit)
 
-        # Write the output to a file (optional) - prepare file + filename before CMD loop
-        if writeo:
-            filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
-            filename = hostname + "-" + filetime + ".txt"
-            filenames.append(filename)
-            f = open(filename,'a')
-
-        # Command Loop
-        for cmd in commands:
-
-            # Send the Command
-            print("%s: Running: %s" % (hostname, cmd))
-            output = send_command(cmd, hostname, bail_timeout)
-
-            # Print the output (optional)
-            if printo:
-                print(output)
+            # Write the output to a file (optional) - prepare file + filename before CMD loop
             if writeo:
-                f.write(output)
+                filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+                filename = hostname + "-" + filetime + ".txt"
+                filenames.append(filename)
+                f = open(filename,'a')
 
-            # delay next command (optional)
-            if delay_command:
-                time.sleep(delay_command_time)
+            # Command Loop
+            for cmd in commands:
 
-            # Print progress
-            try:
-                counter
-                # Random calculation to find 10 percent
-                if (counter % 10) == 0:
-                    completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
-                    if int(completion) > 9:
-                        print("\n  %s%% Complete" % int(completion))
-                        if delay_command:
-                            time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
-                            print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
-                        print(" ")
-                counter += 1
-            except:
-                pass
+                # Send the Command
+                print("%s: Running: %s" % (hostname, cmd))
+                output = send_command(cmd, hostname, bail_timeout)
+
+                # Print the output (optional)
+                if printo:
+                    print(output)
+                if writeo:
+                    f.write(output)
+
+                # delay next command (optional)
+                if delay_command:
+                    time.sleep(delay_command_time)
+
+                # Print progress
+                try:
+                    counter
+                    # Random calculation to find 10 percent
+                    if (counter % 10) == 0:
+                        completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
+                        if int(completion) > 9:
+                            print("\n  %s%% Complete" % int(completion))
+                            if delay_command:
+                                time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
+                                print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
+                            print(" ")
+                    counter += 1
+                except:
+                    pass
 
 
-        # /end Command Loop
+            # /end Command Loop
 
-        if writeo:
-            # Close the File
-            f.close()
+            if writeo:
+                # Close the File
+                f.close()
 
 
-        # Disconnect from SSH
-        disconnect()
+            # Disconnect from SSH
+            disconnect()
 
-        if writeo:
-            print("Switch %s done, output: %s" % (switch, filename))
-        else:
-            print("Switch %s done" % switch)
+            if writeo:
+                print("Switch %s done, output: %s" % (switch, filename))
+            else:
+                print("Switch %s done" % switch)
 
-        # Sleep between SSH connections
-        time.sleep(1)
+            # Sleep between SSH connections
+            time.sleep(1)
+        except:
+            pass
 
     print("\n") # Random line break
 

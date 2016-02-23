@@ -26,13 +26,14 @@ Crassh has a version specific built in help with ``-h``, e.g ::
        -pw is supported, will print the output to screen and write the output to file! [optional]"
        -t set a command timeout in seconds [optional | Default: 60]"
        -X disable \"do no harm\" [optional]"
+       -Q disable \"quit on failure\" [optional]"
        -e set an enable password [optional]"
        -d set a delay between commands [optional]"
        -A set an Authentication file for SSH credentials [optional]
        -U set a Username for SSH Authentication [optional]
        -P set a Password for SSH Authentication [optional]
 
-    Version: 1.20
+    Version: 2.04
 
     linickx:crassh nick$
 
@@ -92,6 +93,11 @@ Print Vs Write
 --------------
 
 By default, crassh will write it's output to a file, in the format hostname-YearMonthDate-HourMinuteSecond. If you suppy the ``-p`` option, crassh will output to screen instead. If you want to Print and Write, use ``-pw``
+
+Quit on Failure
+---------------
+
+crassh by default will stop in it's tracks (quit/exit) if there is a connectivity failure to a device, this is to stop invalid credentials hammering a list of devices and potentially locking out TACACS accounts. **BUT** this also means that if there is network error (*i.e. TCP/IP connectivity issue*) then crassh will also stop, the ``-Q`` option can be used to disable `Quit on Failure`
 
 Execution Timeout
 -----------------
