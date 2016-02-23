@@ -1,5 +1,5 @@
 Connecting to 2.2.2.2 ... 
-Connection Failed: [Errno 60] Operation timed out
+Connection Failed: [Errno 110] Connection timed out
 Connecting to 1.1.1.2 ... 
 r1: Running: show ver | ex uptime
 show ver | ex uptime
