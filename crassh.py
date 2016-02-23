@@ -633,6 +633,8 @@ def main():
 
             # Sleep between SSH connections
             time.sleep(1)
+        except SystemExit: # http://stackoverflow.com/questions/25905923/python-sys-exit-not-working-in-try
+            sys.exit()
         except:
             pass
 

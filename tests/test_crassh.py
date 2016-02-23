@@ -145,3 +145,35 @@ def test_cisco_connect_enable():
     hostname = crassh.connect(device, username, password, enable, enable_password)
     crassh.disconnect()
     assert hostname == "r1"
+
+@cisco
+def test_cisco_main_quit_default(capsys):
+    global sys
+    SwitchFile = CUR_DIR + "/cisco_main_quit_s.txt"         # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"          # The Command to run "show ver"
+    OutputFile = CUR_DIR + "/cisco_main_quit_default_output.txt"    # The expected output (from a "show ver")
+    f=open(OutputFile,'r')
+    ExpectedOutput = f.readlines()
+    sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile] # ./crassh -U nick -P nick -p -s SwitchFile -c CmdFile
+    crassh.main()
+    out, err = capsys.readouterr() # Capture output
+    counter = 0
+    for line in out.splitlines():
+        assert ExpectedOutput[counter].strip() == line.strip()
+        counter += 1
+
+@cisco
+def test_cisco_main_quit_disable(capsys):
+    global sys
+    SwitchFile = CUR_DIR + "/cisco_main_quit_s.txt"         # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"          # The Command to run "show ver"
+    OutputFile = CUR_DIR + "/cisco_main_quit_disable_output.txt"    # The expected output (from a "show ver")
+    f=open(OutputFile,'r')
+    ExpectedOutput = f.readlines()
+    sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile, '-Q'] # ./crassh -U nick -P nick -p -s SwitchFile -c CmdFile -Q
+    crassh.main()
+    out, err = capsys.readouterr() # Capture output
+    counter = 0
+    for line in out.splitlines():
+        assert ExpectedOutput[counter].strip() == line.strip()
+        counter += 1
