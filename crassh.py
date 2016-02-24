@@ -569,11 +569,12 @@ def main():
 
     for switch in switches:
         
-        try:
-            if enable:
-                hostname = connect(switch, username, password, enable, enable_password, sysexit)
-            else:
-                hostname = connect(switch, username, password, False, "", sysexit)
+        if enable:
+            hostname = connect(switch, username, password, enable, enable_password, sysexit)
+        else:
+            hostname = connect(switch, username, password, False, "", sysexit)
+                
+        if str(hostname) != str("False"):
 
             # Write the output to a file (optional) - prepare file + filename before CMD loop
             if writeo:
@@ -633,10 +634,6 @@ def main():
 
             # Sleep between SSH connections
             time.sleep(1)
-        except SystemExit: # http://stackoverflow.com/questions/25905923/python-sys-exit-not-working-in-try
-            sys.exit()
-        except:
-            pass
 
     print("\n") # Random line break
 
