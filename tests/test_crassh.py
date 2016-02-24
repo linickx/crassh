@@ -155,7 +155,8 @@ def test_cisco_main_quit_default(capsys):
     f=open(OutputFile,'r')
     ExpectedOutput = f.readlines()
     sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile] # ./crassh -U nick -P nick -p -s SwitchFile -c CmdFile
-    crassh.main()
+    with pytest.raises(SystemExit):
+        crassh.main()
     out, err = capsys.readouterr() # Capture output
     counter = 0
     for line in out.splitlines():
