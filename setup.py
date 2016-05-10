@@ -4,7 +4,7 @@ from distutils.core import setup
 README = open('README.rst').read()
 
 setup(name='CraSSH',
-      version='2.04',
+      version='2.5',
       description='Cisco Remote Automation via SSH (or C.R.A.SSH for short) is a python script for automating commands on Cisco devices.',
        long_description=README,
       author='Nick Bettison',
