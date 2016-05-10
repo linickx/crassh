@@ -19,7 +19,7 @@ import os, stat             # File system
 import re                   # Regex
 
 # Version Control in a Variable
-crassh_version = "2.04"
+crassh_version = "2.4"
 
 # Python 2 & 3 input compatibility
 try:
