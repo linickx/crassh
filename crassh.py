@@ -20,12 +20,16 @@ import stat                 # File system
 import re                   # Regex
 import paramiko             # SSH
 
+# I don't care about long line, deal with it ;)
+# pylint: disable=C0301
+
 # Global variables
 crassh_version = "2.5"      # Version Control in a Variable
 remote_conn = ""            # Paramiko Remote Connection
 remote_conn_pre = ""        # Paramiko Remote Connection Settings (pre-connect)
 
 # Python 2 & 3 input compatibility
+# pylint: disable=W0622
 try:
     input = raw_input
 except NameError:
@@ -107,8 +111,7 @@ def do_no_harm(command):
     >>> crassh.do_no_harm("show ver")
     >>>
 
-    So, good commands just pass through with no response
-    ... maybe I should oneday make it a True/False kind of thing.
+    So, good commands just pass through with no response... maybe I should oneday make it a True/False kind of thing.
 
     """
 
@@ -289,8 +292,7 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,
-    enable_password="cisco", sysexit=False):
+def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,enable_password="cisco", sysexit=False):
     """Connect and get Hostname of Cisco Device
 
     This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device.

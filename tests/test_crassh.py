@@ -17,6 +17,10 @@ import sys
 import pytest                   # Pytest
 import crassh                   # CraSSH!
 
+# I don't care about long line, deal with it ;)
+# pylint: disable=C0301
+# the var err is assigned but not used on purpose
+# pylint: disable=W0612
 
 # Current Directory
 CUR_DIR = os.path.dirname(__file__)
