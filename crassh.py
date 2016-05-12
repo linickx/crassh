@@ -3,23 +3,27 @@
 
 """Python script to automate running commands on switches.
     Cisco Remote Automation via Secure Shell... or C.R.A.SSH for short!
-    
+
 .. currentmodule:: crassh
 .. moduleauthor:: Nick Bettison - www.linickx.com
 """
 
 # Import libs
 import getpass              # Hide Password Entry
-import paramiko             # SSH 
-import socket               # TCP/Network/Socket 
-import time, datetime       # Date & Times
-from io import StringIO     # 
-import sys, getopt          # Command line options
-import os, stat             # File system
+import socket               # TCP/Network/Socket
+import time                 # Time
+import datetime             # Date
+import sys                  #
+import getopt               # Command line options
+import os                   #
+import stat                 # File system
 import re                   # Regex
+import paramiko             # SSH
 
-# Version Control in a Variable
-crassh_version = "2.5"
+# Global variables
+crassh_version = "2.5"      # Version Control in a Variable
+remote_conn = ""            # Paramiko Remote Connection
+remote_conn_pre = ""        # Paramiko Remote Connection Settings (pre-connect)
 
 # Python 2 & 3 input compatibility
 try:
@@ -31,14 +35,14 @@ except NameError:
     Functions
 """
 
-def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
+def send_command(command="show ver", hostname="Switch", bail_timeout=0):
     """Sending commands to a switch, router, device, whatever!
 
         Args:
            command (str):  The Command you wish to run on the device.
-           
+
            hostname (str): The hostname of the device (*expected in the* ``prompt``).
-           
+
            bail_timeout (int): How long to wait for ``command`` to finish before giving up.
 
         Returns:
@@ -48,7 +52,7 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
         REF: http://blog.timmattison.com/archives/2014/06/25/automating-cisco-switch-interactions/
     """
     global remote_conn, remote_conn_pre
-    
+
     # Start with empty var & loop
     output = ""
     keeplooping = True
@@ -70,8 +74,8 @@ def send_command(command = "show ver", hostname = "Switch", bail_timeout = 60):
         # Setup bail timer
         now = int(time.time())
         if now == timeout:
-            print("\n Command %s took %s secs to run, bailing!" % (cmd, str(bail_timeout)))
-            output += "crassh bailed on command: " + cmd
+            print("\n Command %s took %s secs to run, bailing!" % (command, str(bail_timeout)))
+            output += "crassh bailed on command: " + command
             keeplooping = False
             break
 
@@ -103,7 +107,8 @@ def do_no_harm(command):
     >>> crassh.do_no_harm("show ver")
     >>>
 
-    So, good commands just pass through with no response... maybe I should oneday make it a True/False kind of thing.
+    So, good commands just pass through with no response
+    ... maybe I should oneday make it a True/False kind of thing.
 
     """
 
@@ -131,7 +136,7 @@ def do_no_harm(command):
         print_help()
 
 # Simple help print and exit
-def print_help(exit = 0):
+def print_help(exitcode=0):
     """Prints the Help for the CLI tool
 
     Args:
@@ -145,13 +150,13 @@ def print_help(exit = 0):
     """
 
     global crassh_version
-    
+
     print("\n Usage: %s -s switches.txt -c commands.txt -p -w -t 45 -e" % sys.argv[0])
     print("   -s supply a text file of switch hostnames or IP addresses [optional]")
     print("   -c supply a text file of commands to run on switches [optional]")
     print("   -w write the output to a file [optional | Default: True]")
     print("   -p print the output to the screen [optional | Default: False]")
-    print("   -pw is supported, will print the output to screen and write the output to file! [optional]")
+    print("   -pw is supported, print to both file & screen [optional]")
     print("   -t set a command timeout in seconds [optional | Default: 60]")
     print("   -X disable \"do no harm\" [optional]")
     print("   -Q disable \"quit on failure\" [optional]")
@@ -163,7 +168,7 @@ def print_help(exit = 0):
     print(" ")
     print("Version: %s" % crassh_version)
     print(" ")
-    sys.exit(exit)
+    sys.exit(exitcode)
 
 def isgroupreadable(filepath):
     """Checks if a file is *Group* readable
@@ -208,7 +213,6 @@ def isotherreadable(filepath):
 def readtxtfile(filepath):
     """Read lines of a text file into an array
     Each line is stripped of whitepace.
-    
 
     Args:
        filepath (str):  Full path to file
@@ -223,16 +227,15 @@ def readtxtfile(filepath):
     1.1.1.2
     1.1.1.3
 
-    
     """
     # Check if file exists
-    if os.path.isfile(filepath) == False:
+    if os.path.isfile(filepath) is False:
         print("Cannot find %s" % filepath)
         sys.exit()
     # setup return array
     txtarray = []
     # open our file
-    f=open(filepath,'r')
+    f = open(filepath, 'r')
     # Loop thru the array
     for line in f:
         # Append each line to array
@@ -243,9 +246,9 @@ def readtxtfile(filepath):
 # Read a Crassh Authentication File
 def readauthfile(filepath):
     """Read C.R.A.SSH Authentication File
-    
+
     The file format is a simple, one entry per line, colon separated affair::
-    
+
         username: nick
         password: cisco
 
@@ -266,11 +269,11 @@ def readauthfile(filepath):
     """
 
     # Check if file exists
-    if os.path.isfile(filepath) == False:
+    if os.path.isfile(filepath) is False:
         print("Cannot find %s" % filepath)
         sys.exit()
     # Open file
-    f=open(filepath,'r')
+    f = open(filepath, 'r')
     # Loop thru the array
     for fline in f:
         thisline = fline.strip().split(":")
@@ -286,23 +289,26 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable = False, enable_password = "cisco", sysexit = False):
+def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,
+    enable_password="cisco", sysexit=False):
     """Connect and get Hostname of Cisco Device
-    
-    This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device. The function creates two global variables ``remote_conn_pre`` and ``remote_conn`` which are the paramiko objects for direct manipulation if necessary.
-    
+
+    This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device.
+    The function creates two global variables ``remote_conn_pre`` and ``remote_conn`` which
+    are the paramiko objects for direct manipulation if necessary.
+
     Args:
        device (str):  IP Address or Fully Qualifed Domain Name of Device
-       
+
        username (str): Username for SSH Authentication
-       
+
        password (str): Password for SSH Authentication
-       
-       enable (bool): Is enable going to be needed? 
-       
+
+       enable (bool): Is enable going to be needed?
+
        enable_password (str): The enable password
-       
-       sysexit (bool): Should the connecton exit the script on failure? 
+
+       sysexit (bool): Should the connecton exit the script on failure?
 
     Returns:
        str.  The hostname of the device
@@ -312,18 +318,18 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
     >>> hostname = connect("10.10.10.10", "nick", "cisco")
     >>> print(hostname)
     r1
-    
-    REF: 
+
+    REF:
         * https://pynet.twb-tech.com/blog/python/paramiko-ssh-part1.html
         * http://yenonn.blogspot.co.uk/2013/10/python-in-action-paramiko-handling-ssh.html
 
     """
-    
+
     # Global variables - Paramiko Stuff.
     global remote_conn_pre, remote_conn
-    
+
     """
-        
+
 
     """
 
@@ -334,8 +340,9 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
 
     print("Connecting to %s ... " % device)
 
-    try: 
-        remote_conn_pre.connect(device, username=username, password=password, allow_agent=False, look_for_keys=False)
+    try:
+        remote_conn_pre.connect(
+            device, username=username, password=password, allow_agent=False, look_for_keys=False)
     except paramiko.AuthenticationException as e:
         print("Authentication Error: %s" % e)
         if sysexit:
@@ -380,9 +387,9 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
 
     # Ok, let's find the device hostname
     remote_conn.send("show run | inc hostname \n")
-    while not "#" in output:
+    while "#" not in output:
         # update receive buffer
-            output += remote_conn.recv(1024).decode('utf-8')
+        output += remote_conn.recv(1024).decode('utf-8')
 
     for subline in output.splitlines():
         thisrow = subline.split()
@@ -393,39 +400,39 @@ def connect(device = "127.0.0.1", username = "cisco", password = "cisco", enable
                 prompt = hostname + "#"
         except IndexError:
             gotdata = 'null'
-    
+
     # Found it! Return it!
     return hostname
 
 def disconnect():
     """Disconnect an SSH Session
-    
+
     Crassh wrapper for paramiko disconnect
-    
+
     No Argumanets, disconnects the current global variable ``remote_conn_pre``
     """
-    
+
     global remote_conn_pre
     remote_conn_pre.close()
 
 def main():
     """Main Code Block
-    
+
     This is the main script that Network Administrators will run.
-    
+
     No Argumanets. Input is used for missing CLI Switches.
     """
-    
+
     # import Global Vars
     global input
-    
+
     # Main Vars (local scope)
     switches = [] # Switches, devices, routers, whatever!
-    commands = [] 
+    commands = []
     filenames = []
-    sfile='' # Switch File
-    cfile='' # Command File
-    
+    sfile = '' # Switch File
+    cfile = '' # Command File
+
     # Default variables (values)
     play_safe = True
     enable = False
@@ -440,25 +447,25 @@ def main():
 
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
-        myopts, args = getopt.getopt(sys.argv[1:],"c:s:t:d:A:U:P:hpwXeQ")
+        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:d:A:U:P:hpwXeQ")
     except getopt.GetoptError as e:
-        print ("\n ERROR: %s" % str(e))
+        print("\n ERROR: %s" % str(e))
         print_help(2)
 
     for o, a in myopts:
         if o == '-s':
-            sfile=a
+            sfile = a
             switches = readtxtfile(sfile)
 
         if o == '-c':
-            cfile=a
+            cfile = a
             commands = readtxtfile(cfile)
 
         if o == '-t':
-            bail_timeout=int(a)
+            bail_timeout = int(a)
 
         if o == '-h':
-            print("\n Nick\'s Cisco Remote Automation via Secure Shell - Script, or C.R.A.SSH for short! ")
+            print("\n Nick\'s Cisco Remote Automation via Secure Shell- Script, or C.R.A.SSH for short!")
             print_help()
 
         if o == '-p':
@@ -469,34 +476,34 @@ def main():
             writeo = True
 
         if o == '-X':
-          play_safe = False
-        
+            play_safe = False
+
         if o == '-Q':
-          sysexit = False
+            sysexit = False
 
         if o == '-e':
-          enable = True
+            enable = True
 
         if o == '-d':
             delay_command = True
-            delay_command_time=int(a)
-        
+            delay_command_time = int(a)
+
         if o == '-A':
-            crasshrc=str(a)
+            crasshrc = str(a)
 
         if o == '-U':
-            username=str(a)
+            username = str(a)
 
         if o == '-P':
-            password=str(a)
+            password = str(a)
 
     # See if we have an Authentication File
-    if os.path.isfile(crasshrc) == True:
+    if os.path.isfile(crasshrc) is True:
         try:
             username, password = readauthfile(crasshrc)
         except:
             pass
-    
+
     # Do we have any switches?
     if sfile == "":
         try:
@@ -526,7 +533,7 @@ def main():
         Capture Switch log in credentials...
     """
 
-    try: 
+    try:
         username
     except:
         try:
@@ -553,7 +560,7 @@ def main():
         Time estimations for those delaying commands
     """
     if delay_command:
-        time_estimate = datetime.timedelta(0,(len(commands) * (len(switches) * 2) * delay_command_time)) + datetime.datetime.now()
+        time_estimate = datetime.timedelta(0, (len(commands) * (len(switches) * 2) * delay_command_time)) + datetime.datetime.now()
         print(" Start Time: %s" % datetime.datetime.now().strftime("%H:%M:%S (%y-%m-%d)"))
         print(" Estimatated Completion Time: %s" % time_estimate.strftime("%H:%M:%S (%y-%m-%d)"))
 
@@ -568,12 +575,12 @@ def main():
     """
 
     for switch in switches:
-        
+
         if enable:
             hostname = connect(switch, username, password, enable, enable_password, sysexit)
         else:
             hostname = connect(switch, username, password, False, "", sysexit)
-                
+
         if str(hostname) != str("False"):
 
             # Write the output to a file (optional) - prepare file + filename before CMD loop
@@ -581,7 +588,7 @@ def main():
                 filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
                 filename = hostname + "-" + filetime + ".txt"
                 filenames.append(filename)
-                f = open(filename,'a')
+                f = open(filename, 'a')
 
             # Command Loop
             for cmd in commands:
@@ -605,7 +612,7 @@ def main():
                     counter
                     # Random calculation to find 10 percent
                     if (counter % 10) == 0:
-                        completion = ( (float(counter) / ( float(len(commands)) * float(len(switches)))) * 100 )
+                        completion = ((float(counter) / (float(len(commands)) * float(len(switches)))) * 100)
                         if int(completion) > 9:
                             print("\n  %s%% Complete" % int(completion))
                             if delay_command:
