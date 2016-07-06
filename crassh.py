@@ -24,7 +24,7 @@ import paramiko             # SSH
 # pylint: disable=C0301
 
 # Global variables
-crassh_version = "2.5"      # Version Control in a Variable
+crassh_version = "2.5-dev"      # Version Control in a Variable
 remote_conn = ""            # Paramiko Remote Connection
 remote_conn_pre = ""        # Paramiko Remote Connection Settings (pre-connect)
 
@@ -168,6 +168,9 @@ def print_help(exitcode=0):
     print("   -A set an Authentication file for SSH credentials [optional]")
     print("   -U set a Username for SSH Authentication [optional]")
     print("   -P set a Password for SSH Authentication [optional]")
+    print("   -B set a BACKUP Username for SSH Authentication [optional]")
+    print("   -b set a BACKUP Password for SSH Authentication [optional]")
+    print("   -E set a BACKUP ENABLE Password [optional]")
     print(" ")
     print("Version: %s" % crassh_version)
     print(" ")
@@ -443,13 +446,15 @@ def main():
     printo = False
     bail_timeout = 60
     sysexit = True
+    backup_credz = False
+    backup_enable = False
 
     # Default Authentication File Path
     crasshrc = os.path.expanduser("~") + "/.crasshrc"
 
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
-        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:d:A:U:P:hpwXeQ")
+        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:d:A:U:P:B:b:E:hpwXeQ")
     except getopt.GetoptError as e:
         print("\n ERROR: %s" % str(e))
         print_help(2)
@@ -498,6 +503,18 @@ def main():
 
         if o == '-P':
             password = str(a)
+
+        if o == '-B':
+            backup_credz = True
+            backup_username = str(a)
+
+        if o == '-b':
+            backup_credz = True
+            backup_password = str(a)
+
+        if o == '-E':
+            backup_enable = True
+            backup_enable_password = str(a)
 
     # See if we have an Authentication File
     if os.path.isfile(crasshrc) is True:
@@ -557,7 +574,15 @@ def main():
         except:
             sys.exit()
 
-
+    if backup_credz:
+        sysexit = False # don't bail on authentication failure
+        try:
+            backup_password
+        except:
+            try:
+                backup_password = getpass.getpass("Enter your backup SSH password:")
+            except:
+                sys.exit()
     """
         Time estimations for those delaying commands
     """
@@ -583,66 +608,77 @@ def main():
         else:
             hostname = connect(switch, username, password, False, "", sysexit)
 
-        if str(hostname) != str("False"):
+        if isinstance(hostname, bool): # Connection failed, function returned False
+            if backup_credz:
+                print("Trying backup credentials")
+                if backup_enable:
+                    hostname = connect(switch, backup_username, backup_password, enable, backup_enable_password, sysexit)
+                else:
+                    hostname = connect(switch, backup_username, backup_password, False, "", sysexit)
 
-            # Write the output to a file (optional) - prepare file + filename before CMD loop
-            if writeo:
-                filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
-                filename = hostname + "-" + filetime + ".txt"
-                filenames.append(filename)
-                f = open(filename, 'a')
-
-            # Command Loop
-            for cmd in commands:
-
-                # Send the Command
-                print("%s: Running: %s" % (hostname, cmd))
-                output = send_command(cmd, hostname, bail_timeout)
-
-                # Print the output (optional)
-                if printo:
-                    print(output)
-                if writeo:
-                    f.write(output)
-
-                # delay next command (optional)
-                if delay_command:
-                    time.sleep(delay_command_time)
-
-                # Print progress
-                try:
-                    counter
-                    # Random calculation to find 10 percent
-                    if (counter % 10) == 0:
-                        completion = ((float(counter) / (float(len(commands)) * float(len(switches)))) * 100)
-                        if int(completion) > 9:
-                            print("\n  %s%% Complete" % int(completion))
-                            if delay_command:
-                                time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
-                                print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
-                            print(" ")
-                    counter += 1
-                except:
-                    pass
-
-
-            # /end Command Loop
-
-            if writeo:
-                # Close the File
-                f.close()
-
-
-            # Disconnect from SSH
-            disconnect()
-
-            if writeo:
-                print("Switch %s done, output: %s" % (switch, filename))
+                if isinstance(hostname, bool): # Connection failed, function returned False
+                    continue
             else:
-                print("Switch %s done" % switch)
+                continue
 
-            # Sleep between SSH connections
-            time.sleep(1)
+        # Write the output to a file (optional) - prepare file + filename before CMD loop
+        if writeo:
+            filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+            filename = hostname + "-" + filetime + ".txt"
+            filenames.append(filename)
+            f = open(filename, 'a')
+
+        # Command Loop
+        for cmd in commands:
+
+            # Send the Command
+            print("%s: Running: %s" % (hostname, cmd))
+            output = send_command(cmd, hostname, bail_timeout)
+
+            # Print the output (optional)
+            if printo:
+                print(output)
+            if writeo:
+                f.write(output)
+
+            # delay next command (optional)
+            if delay_command:
+                time.sleep(delay_command_time)
+
+            # Print progress
+            try:
+                counter
+                # Random calculation to find 10 percent
+                if (counter % 10) == 0:
+                    completion = ((float(counter) / (float(len(commands)) * float(len(switches)))) * 100)
+                    if int(completion) > 9:
+                        print("\n  %s%% Complete" % int(completion))
+                        if delay_command:
+                            time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
+                            print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
+                        print(" ")
+                counter += 1
+            except:
+                pass
+
+
+        # /end Command Loop
+
+        if writeo:
+            # Close the File
+            f.close()
+
+
+        # Disconnect from SSH
+        disconnect()
+
+        if writeo:
+            print("Switch %s done, output: %s" % (switch, filename))
+        else:
+            print("Switch %s done" % switch)
+
+        # Sleep between SSH connections
+        time.sleep(1)
 
     print("\n") # Random line break
 
