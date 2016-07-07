@@ -28,7 +28,7 @@ The word *Cisco* is used as a description because this script should work with a
 .. _`initial example`: http://linickx.com/pip-install-crassh
 .. _`news about crassh can be found here`: http://www.linickx.com/tag/crassh
 
-.. |build-status| image:: https://travis-ci.org/linickx/crassh.svg
+.. |build-status| image:: https://travis-ci.org/linickx/crassh.svg?branch=master
    :target: https://travis-ci.org/linickx/crassh
    :alt: Travis CI: continuous integration status
 .. |docs| image:: https://readthedocs.org/projects/crassh/badge/?version=latest
