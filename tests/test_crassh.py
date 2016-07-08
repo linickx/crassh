@@ -214,8 +214,7 @@ def test_cisco_main_backup(capsys):
     f = open(OutputFile, 'r')
     ExpectedOutput = f.readlines()
     sys.argv[1:] = ['-U', 'fail', '-P', 'fail', '-B', 'nick', '-b', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile] # ./crassh -U fail -P fail -B nick -b nick -p -s SwitchFile -c CmdFile
-    with pytest.raises(SystemExit):
-        crassh.main()
+    crassh.main()
     out, err = capsys.readouterr() # Capture output
     counter = 0
     for line in out.splitlines():
