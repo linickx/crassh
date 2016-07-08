@@ -575,7 +575,6 @@ def main():
             sys.exit()
 
     if backup_credz:
-        sysexit = False # don't bail on authentication failure
         try:
             backup_password
         except:
@@ -603,6 +602,10 @@ def main():
 
     for switch in switches:
 
+        if backup_credz:
+            tmp_sysexit = sysexit # re-assign so, don't bail on authentication failure
+            sysexit = False
+
         if enable:
             hostname = connect(switch, username, password, enable, enable_password, sysexit)
         else:
@@ -610,6 +613,7 @@ def main():
 
         if isinstance(hostname, bool): # Connection failed, function returned False
             if backup_credz:
+                sysexit = tmp_sysexit # put it back, so fail or not (-Q) works as expected on backup credz
                 print("Trying backup credentials")
                 if backup_enable:
                     hostname = connect(switch, backup_username, backup_password, enable, backup_enable_password, sysexit)
