@@ -161,6 +161,7 @@ def print_help(exitcode=0):
     print("   -p print the output to the screen [optional | Default: False]")
     print("   -pw is supported, print to both file & screen [optional]")
     print("   -t set a command timeout in seconds [optional | Default: 60]")
+    print("   -T set a connection timeout in seconds [optional | Default: 10]")
     print("   -X disable \"do no harm\" [optional]")
     print("   -Q disable \"quit on failure\" [optional]")
     print("   -e set an enable password [optional]")
@@ -295,7 +296,7 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,enable_password="cisco", sysexit=False):
+def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,enable_password="cisco", sysexit=False, timeout=10):
     """Connect and get Hostname of Cisco Device
 
     This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device.
@@ -347,7 +348,7 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
 
     try:
         remote_conn_pre.connect(
-            device, username=username, password=password, allow_agent=False, look_for_keys=False)
+            device, username=username, password=password, allow_agent=False, look_for_keys=False, timeout=timeout)
     except paramiko.AuthenticationException as e:
         print("Authentication Error: %s" % e)
         if sysexit:
@@ -445,6 +446,7 @@ def main():
     writeo = True
     printo = False
     bail_timeout = 60
+    connect_timeout = 10
     sysexit = True
     backup_credz = False
     backup_enable = False
@@ -454,7 +456,7 @@ def main():
 
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
-        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:d:A:U:P:B:b:E:hpwXeQ")
+        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:T:d:A:U:P:B:b:E:hpwXeQ")
     except getopt.GetoptError as e:
         print("\n ERROR: %s" % str(e))
         print_help(2)
@@ -470,6 +472,9 @@ def main():
 
         if o == '-t':
             bail_timeout = int(a)
+
+        if o == '-T':
+            connect_timeout = int(a)
 
         if o == '-h':
             print("\n Nick\'s Cisco Remote Automation via Secure Shell- Script, or C.R.A.SSH for short!")
@@ -607,18 +612,18 @@ def main():
             sysexit = False
 
         if enable:
-            hostname = connect(switch, username, password, enable, enable_password, sysexit)
+            hostname = connect(switch, username, password, enable, enable_password, sysexit, connect_timeout)
         else:
-            hostname = connect(switch, username, password, False, "", sysexit)
+            hostname = connect(switch, username, password, False, "", sysexit, connect_timeout)
 
         if isinstance(hostname, bool): # Connection failed, function returned False
             if backup_credz:
                 sysexit = tmp_sysexit # put it back, so fail or not (-Q) works as expected on backup credz
                 print("Trying backup credentials")
                 if backup_enable:
-                    hostname = connect(switch, backup_username, backup_password, enable, backup_enable_password, sysexit)
+                    hostname = connect(switch, backup_username, backup_password, enable, backup_enable_password, sysexit, connect_timeout)
                 else:
-                    hostname = connect(switch, backup_username, backup_password, False, "", sysexit)
+                    hostname = connect(switch, backup_username, backup_password, False, "", sysexit, connect_timeout)
 
                 if isinstance(hostname, bool): # Connection failed, function returned False
                     continue
