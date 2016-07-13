@@ -1,2 +1,2 @@
 Connecting to 2.2.2.2 ... 
-Connection Failed: [Errno 110] Connection timed out
+Connection Failed: timed out
