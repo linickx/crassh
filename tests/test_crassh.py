@@ -168,11 +168,11 @@ def test_cisco_connect_enable():
 
 @cisco
 def test_cisco_main_quit_default(capsys):
-    """ Test main function quits properly against a router
+    """ Test main function quits properly against a failed router
     """
     global sys
-    SwitchFile = CUR_DIR + "/cisco_main_quit_s.txt"         # IP Address of Switch/Router (for CLI Input)
-    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"          # The Command to run "show ver"
+    SwitchFile = CUR_DIR + "/cisco_main_quit_s.txt"                 # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"           # The Command to run "show ver"
     OutputFile = CUR_DIR + "/cisco_main_quit_default_output.txt"    # The expected output (from a "show ver")
     f = open(OutputFile, 'r')
     ExpectedOutput = f.readlines()
@@ -187,15 +187,33 @@ def test_cisco_main_quit_default(capsys):
 
 @cisco
 def test_cisco_main_quit_disable(capsys):
-    """ Test main function quit can be disabled (against a router)
+    """ Test main function quit can be disabled (continue if router connection/authentication fails)
     """
     global sys
-    SwitchFile = CUR_DIR + "/cisco_main_quit_s.txt"         # IP Address of Switch/Router (for CLI Input)
-    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"          # The Command to run "show ver"
+    SwitchFile = CUR_DIR + "/cisco_main_quit_s.txt"                 # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"           # The Command to run "show ver"
     OutputFile = CUR_DIR + "/cisco_main_quit_disable_output.txt"    # The expected output (from a "show ver")
     f = open(OutputFile, 'r')
     ExpectedOutput = f.readlines()
     sys.argv[1:] = ['-U', 'nick', '-P', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile, '-Q'] # ./crassh -U nick -P nick -p -s SwitchFile -c CmdFile -Q
+    crassh.main()
+    out, err = capsys.readouterr() # Capture output
+    counter = 0
+    for line in out.splitlines():
+        assert ExpectedOutput[counter].strip() == line.strip()
+        counter += 1
+
+@cisco
+def test_cisco_main_backup(capsys):
+    """ Test main function with backup credentials
+    """
+    global sys
+    SwitchFile = CUR_DIR + "/cisco_main_backup_s.txt"           # IP Address of Switch/Router (for CLI Input)
+    CmdFile = CUR_DIR + "/cisco_main_shver_multi_cmd.txt"       # The Command to run "show ver"
+    OutputFile = CUR_DIR + "/cisco_main_backup_output.txt"      # The expected output (from a "show ver")
+    f = open(OutputFile, 'r')
+    ExpectedOutput = f.readlines()
+    sys.argv[1:] = ['-U', 'fail', '-P', 'fail', '-B', 'nick', '-b', 'nick', '-p', '-s', SwitchFile, '-c', CmdFile] # ./crassh -U fail -P fail -B nick -b nick -p -s SwitchFile -c CmdFile
     crassh.main()
     out, err = capsys.readouterr() # Capture output
     counter = 0

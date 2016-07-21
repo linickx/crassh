@@ -24,7 +24,7 @@ import paramiko             # SSH
 # pylint: disable=C0301
 
 # Global variables
-crassh_version = "2.5"      # Version Control in a Variable
+crassh_version = "2.6"      # Version Control in a Variable
 remote_conn = ""            # Paramiko Remote Connection
 remote_conn_pre = ""        # Paramiko Remote Connection Settings (pre-connect)
 
@@ -161,6 +161,7 @@ def print_help(exitcode=0):
     print("   -p print the output to the screen [optional | Default: False]")
     print("   -pw is supported, print to both file & screen [optional]")
     print("   -t set a command timeout in seconds [optional | Default: 60]")
+    print("   -T set a connection timeout in seconds [optional | Default: 10]")
     print("   -X disable \"do no harm\" [optional]")
     print("   -Q disable \"quit on failure\" [optional]")
     print("   -e set an enable password [optional]")
@@ -168,6 +169,9 @@ def print_help(exitcode=0):
     print("   -A set an Authentication file for SSH credentials [optional]")
     print("   -U set a Username for SSH Authentication [optional]")
     print("   -P set a Password for SSH Authentication [optional]")
+    print("   -B set a BACKUP Username for SSH Authentication [optional]")
+    print("   -b set a BACKUP Password for SSH Authentication [optional]")
+    print("   -E set a BACKUP ENABLE Password [optional]")
     print(" ")
     print("Version: %s" % crassh_version)
     print(" ")
@@ -292,7 +296,7 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,enable_password="cisco", sysexit=False):
+def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,enable_password="cisco", sysexit=False, timeout=10):
     """Connect and get Hostname of Cisco Device
 
     This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device.
@@ -329,6 +333,7 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
 
     # Global variables - Paramiko Stuff.
     global remote_conn_pre, remote_conn
+    hostname = False
 
     """
 
@@ -344,7 +349,7 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
 
     try:
         remote_conn_pre.connect(
-            device, username=username, password=password, allow_agent=False, look_for_keys=False)
+            device, username=username, password=password, allow_agent=False, look_for_keys=False, timeout=timeout)
     except paramiko.AuthenticationException as e:
         print("Authentication Error: %s" % e)
         if sysexit:
@@ -370,7 +375,9 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
     remote_conn = remote_conn_pre.invoke_shell()
 
     # Flush buffer.
-    output = remote_conn.recv(1000)
+    output = remote_conn.recv(1000).decode('utf-8')
+    del output
+    output = ""
 
     # If we have enable password, send it.
     if enable:
@@ -379,29 +386,43 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
         remote_conn.send(enable_password + "\n")
 
     # Disable <-- More --> on Output
-    remote_conn.send("terminal length 0\n")
+    remote_conn.sendall("terminal length 0\n")
     time.sleep(0.5)
-    # Flush buffer.
-    output = remote_conn.recv(1000)
 
+    while "#" not in output:
+        # update receive buffer
+        if remote_conn.recv_ready():
+            output += remote_conn.recv(1024).decode('utf-8')
     # Clear the Var.
+    del output
     output = ""
 
     # Ok, let's find the device hostname
-    remote_conn.send("show run | inc hostname \n")
-    while "#" not in output:
-        # update receive buffer
-        output += remote_conn.recv(1024).decode('utf-8')
+    remote_conn.sendall("show run | inc hostname \n")
+    time.sleep(0.5)
 
-    for subline in output.splitlines():
-        thisrow = subline.split()
-        try:
-            gotdata = thisrow[1]
-            if thisrow[0] == "hostname":
-                hostname = thisrow[1]
-                prompt = hostname + "#"
-        except IndexError:
-            gotdata = 'null'
+    keeplooping = True
+    while keeplooping:
+        if remote_conn.recv_ready():
+            output += remote_conn.recv(1024).decode('utf-8')
+            for subline in output.splitlines():
+                if re.match("^hostname", subline):
+                    #print("Match %s" % subline)
+                    thisrow = subline.split()
+                    try:
+                        gotdata = thisrow[1]
+                        if thisrow[0] == "hostname":
+                            hostname = thisrow[1]
+                            #prompt = hostname + "#"
+                    except IndexError:
+                        gotdata = 'null'
+                    keeplooping = False
+
+    # Catch looping failures.
+    if hostname is False:
+        print("Hostname Lookup Failed: \n %s \n" % output)
+        if sysexit:
+            sys.exit()
 
     # Found it! Return it!
     return hostname
@@ -442,14 +463,17 @@ def main():
     writeo = True
     printo = False
     bail_timeout = 60
+    connect_timeout = 10
     sysexit = True
+    backup_credz = False
+    backup_enable = False
 
     # Default Authentication File Path
     crasshrc = os.path.expanduser("~") + "/.crasshrc"
 
     # Get script options - http://www.cyberciti.biz/faq/python-command-line-arguments-argv-example/
     try:
-        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:d:A:U:P:hpwXeQ")
+        myopts, args = getopt.getopt(sys.argv[1:], "c:s:t:T:d:A:U:P:B:b:E:hpwXeQ")
     except getopt.GetoptError as e:
         print("\n ERROR: %s" % str(e))
         print_help(2)
@@ -465,6 +489,9 @@ def main():
 
         if o == '-t':
             bail_timeout = int(a)
+
+        if o == '-T':
+            connect_timeout = int(a)
 
         if o == '-h':
             print("\n Nick\'s Cisco Remote Automation via Secure Shell- Script, or C.R.A.SSH for short!")
@@ -498,6 +525,18 @@ def main():
 
         if o == '-P':
             password = str(a)
+
+        if o == '-B':
+            backup_credz = True
+            backup_username = str(a)
+
+        if o == '-b':
+            backup_credz = True
+            backup_password = str(a)
+
+        if o == '-E':
+            backup_enable = True
+            backup_enable_password = str(a)
 
     # See if we have an Authentication File
     if os.path.isfile(crasshrc) is True:
@@ -557,7 +596,14 @@ def main():
         except:
             sys.exit()
 
-
+    if backup_credz:
+        try:
+            backup_password
+        except:
+            try:
+                backup_password = getpass.getpass("Enter your backup SSH password:")
+            except:
+                sys.exit()
     """
         Time estimations for those delaying commands
     """
@@ -578,71 +624,87 @@ def main():
 
     for switch in switches:
 
+        if backup_credz:
+            tmp_sysexit = sysexit # re-assign so, don't bail on authentication failure
+            sysexit = False
+
         if enable:
-            hostname = connect(switch, username, password, enable, enable_password, sysexit)
+            hostname = connect(switch, username, password, enable, enable_password, sysexit, connect_timeout)
         else:
-            hostname = connect(switch, username, password, False, "", sysexit)
+            hostname = connect(switch, username, password, False, "", sysexit, connect_timeout)
 
-        if str(hostname) != str("False"):
+        if isinstance(hostname, bool): # Connection failed, function returned False
+            if backup_credz:
+                sysexit = tmp_sysexit # put it back, so fail or not (-Q) works as expected on backup credz
+                print("Trying backup credentials")
+                if backup_enable:
+                    hostname = connect(switch, backup_username, backup_password, enable, backup_enable_password, sysexit, connect_timeout)
+                else:
+                    hostname = connect(switch, backup_username, backup_password, False, "", sysexit, connect_timeout)
 
-            # Write the output to a file (optional) - prepare file + filename before CMD loop
-            if writeo:
-                filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
-                filename = hostname + "-" + filetime + ".txt"
-                filenames.append(filename)
-                f = open(filename, 'a')
-
-            # Command Loop
-            for cmd in commands:
-
-                # Send the Command
-                print("%s: Running: %s" % (hostname, cmd))
-                output = send_command(cmd, hostname, bail_timeout)
-
-                # Print the output (optional)
-                if printo:
-                    print(output)
-                if writeo:
-                    f.write(output)
-
-                # delay next command (optional)
-                if delay_command:
-                    time.sleep(delay_command_time)
-
-                # Print progress
-                try:
-                    counter
-                    # Random calculation to find 10 percent
-                    if (counter % 10) == 0:
-                        completion = ((float(counter) / (float(len(commands)) * float(len(switches)))) * 100)
-                        if int(completion) > 9:
-                            print("\n  %s%% Complete" % int(completion))
-                            if delay_command:
-                                time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
-                                print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
-                            print(" ")
-                    counter += 1
-                except:
-                    pass
-
-
-            # /end Command Loop
-
-            if writeo:
-                # Close the File
-                f.close()
-
-
-            # Disconnect from SSH
-            disconnect()
-
-            if writeo:
-                print("Switch %s done, output: %s" % (switch, filename))
+                if isinstance(hostname, bool): # Connection failed, function returned False
+                    continue
             else:
-                print("Switch %s done" % switch)
+                continue
 
-            # Sleep between SSH connections
-            time.sleep(1)
+        # Write the output to a file (optional) - prepare file + filename before CMD loop
+        if writeo:
+            filetime = datetime.datetime.now().strftime("%y%m%d-%H%M%S")
+            filename = hostname + "-" + filetime + ".txt"
+            filenames.append(filename)
+            f = open(filename, 'a')
+
+        # Command Loop
+        for cmd in commands:
+
+            # Send the Command
+            print("%s: Running: %s" % (hostname, cmd))
+            output = send_command(cmd, hostname, bail_timeout)
+
+            # Print the output (optional)
+            if printo:
+                print(output)
+            if writeo:
+                f.write(output)
+
+            # delay next command (optional)
+            if delay_command:
+                time.sleep(delay_command_time)
+
+            # Print progress
+            try:
+                counter
+                # Random calculation to find 10 percent
+                if (counter % 10) == 0:
+                    completion = ((float(counter) / (float(len(commands)) * float(len(switches)))) * 100)
+                    if int(completion) > 9:
+                        print("\n  %s%% Complete" % int(completion))
+                        if delay_command:
+                            time_left = datetime.timedelta(0, (((int(len(commands)) * int(len(switches))) + (len(switches) * 0.5)) - counter)) + datetime.datetime.now()
+                            print("  Estimatated Completion Time: %s" % time_left.strftime("%H:%M:%S (%y-%m-%d)"))
+                        print(" ")
+                counter += 1
+            except:
+                pass
+
+
+        # /end Command Loop
+
+        if writeo:
+            # Close the File
+            f.close()
+
+
+        # Disconnect from SSH
+        disconnect()
+
+        if writeo:
+            print("Switch %s done, output: %s" % (switch, filename))
+        else:
+            print("Switch %s done" % switch)
+
+        # Sleep between SSH connections
+        time.sleep(1)
 
     print("\n") # Random line break
 
