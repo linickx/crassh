@@ -333,6 +333,7 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
 
     # Global variables - Paramiko Stuff.
     global remote_conn_pre, remote_conn
+    hostname = False
 
     """
 
@@ -374,7 +375,9 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
     remote_conn = remote_conn_pre.invoke_shell()
 
     # Flush buffer.
-    output = remote_conn.recv(1000)
+    output = remote_conn.recv(1000).decode('utf-8')
+    del output
+    output = ""
 
     # If we have enable password, send it.
     if enable:
@@ -383,29 +386,43 @@ def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False
         remote_conn.send(enable_password + "\n")
 
     # Disable <-- More --> on Output
-    remote_conn.send("terminal length 0\n")
+    remote_conn.sendall("terminal length 0\n")
     time.sleep(0.5)
-    # Flush buffer.
-    output = remote_conn.recv(1000)
 
+    while "#" not in output:
+        # update receive buffer
+        if remote_conn.recv_ready():
+            output += remote_conn.recv(1024).decode('utf-8')
     # Clear the Var.
+    del output
     output = ""
 
     # Ok, let's find the device hostname
-    remote_conn.send("show run | inc hostname \n")
-    while "#" not in output:
-        # update receive buffer
-        output += remote_conn.recv(1024).decode('utf-8')
+    remote_conn.sendall("show run | inc hostname \n")
+    time.sleep(0.5)
 
-    for subline in output.splitlines():
-        thisrow = subline.split()
-        try:
-            gotdata = thisrow[1]
-            if thisrow[0] == "hostname":
-                hostname = thisrow[1]
-                prompt = hostname + "#"
-        except IndexError:
-            gotdata = 'null'
+    keeplooping = True
+    while keeplooping:
+        if remote_conn.recv_ready():
+            output += remote_conn.recv(1024).decode('utf-8')
+            for subline in output.splitlines():
+                if re.match("^hostname", subline):
+                    #print("Match %s" % subline)
+                    thisrow = subline.split()
+                    try:
+                        gotdata = thisrow[1]
+                        if thisrow[0] == "hostname":
+                            hostname = thisrow[1]
+                            #prompt = hostname + "#"
+                    except IndexError:
+                        gotdata = 'null'
+                    keeplooping = False
+
+    # Catch looping failures.
+    if hostname is False:
+        print("Hostname Lookup Failed: \n %s \n" % output)
+        if sysexit:
+            sys.exit()
 
     # Found it! Return it!
     return hostname
