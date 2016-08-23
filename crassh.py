@@ -39,7 +39,7 @@ except NameError:
     Functions
 """
 
-def send_command(command="show ver", hostname="Switch", bail_timeout=0):
+def send_command(command="show ver", hostname="Switch", bail_timeout=60):
     """Sending commands to a switch, router, device, whatever!
 
         Args:
@@ -296,7 +296,7 @@ def readauthfile(filepath):
                     password = thisline[1].strip()
                     return username, password
 
-def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False,enable_password="cisco", sysexit=False, timeout=10):
+def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False, enable_password="cisco", sysexit=False, timeout=10):
     """Connect and get Hostname of Cisco Device
 
     This function wraps up ``paramiko`` and returns the hostname of the **Cisco** device.
