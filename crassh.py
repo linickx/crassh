@@ -24,7 +24,7 @@ import paramiko             # SSH
 # pylint: disable=C0301
 
 # Global variables
-crassh_version = "2.7"      # Version Control in a Variable
+crassh_version = "2.8"      # Version Control in a Variable
 remote_conn = ""            # Paramiko Remote Connection
 remote_conn_pre = ""        # Paramiko Remote Connection Settings (pre-connect)
 
