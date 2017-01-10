@@ -62,7 +62,7 @@ def send_command(command="show ver", hostname="Switch", bail_timeout=60):
     keeplooping = True
 
     # Regex for either config or enable
-    regex = '^' + hostname + '(.*)(\ )?#'
+    regex = '^' + hostname[:20] + '(.*)(\ )?#'
     theprompt = re.compile(regex)
 
     # Time when the command started, prepare for timeout.
