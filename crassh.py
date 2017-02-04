@@ -19,6 +19,7 @@ import os                   #
 import stat                 # File system
 import re                   # Regex
 import paramiko             # SSH
+import configparser         # Configuration File
 
 # I don't care about long line, deal with it ;)
 # pylint: disable=C0301
@@ -254,10 +255,11 @@ def readtxtfile(filepath):
 def readauthfile(filepath):
     """Read C.R.A.SSH Authentication File
 
-    The file format is a simple, one entry per line, colon separated affair::
+    The file format is a standard ini/python config file::
 
-        username: nick
-        password: cisco
+        [crassh]
+        username = nick
+        password = cisco
 
     Args:
        filepath (str):  Full path to file
@@ -279,22 +281,26 @@ def readauthfile(filepath):
     if os.path.isfile(filepath) is False:
         print("Cannot find %s" % filepath)
         sys.exit()
-    # Open file
-    f = open(filepath, 'r')
-    # Loop thru the array
-    for fline in f:
-        thisline = fline.strip().split(":")
-        if thisline[0].strip() == "username":
-            username = thisline[1].strip()
-        if thisline[0].strip() == "password":
-            if isgroupreadable(filepath):
-                print("** Password not read from %s - file is GROUP readable ** " % filepath)
-            else:
-                if isotherreadable(filepath):
-                    print("** Password not read from %s - file is WORLD readable **"% filepath)
-                else:
-                    password = thisline[1].strip()
-                    return username, password
+
+    File_OK = True
+    if isgroupreadable(filepath):
+        print("** File Security Failed - Not Read - %s is GROUP readable - chmod 600 to fix ** " % filepath)
+        File_OK = False
+    if isotherreadable(filepath):
+        print("** File Security Failed - Not Read - %s - file is WORLD readable - chmod 600 to fix ** " % filepath)
+        File_OK = False
+
+    if File_OK:
+        cp = configparser.SafeConfigParser()
+        cp.read(filepath)
+        if cp.has_section("crassh"):
+            if cp.has_option("crassh", "username"):
+                username = cp.get("crassh", "username").strip()
+            if cp.has_option("crassh", "password"):
+                password = cp.get("crassh", "password").strip()
+            return username, password
+        else:
+            print("Cannot find crassh section in %s " & filepath)
 
 def connect(device="127.0.0.1", username="cisco", password="cisco", enable=False, enable_password="cisco", sysexit=False, timeout=10):
     """Connect and get Hostname of Cisco Device
