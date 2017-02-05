@@ -36,6 +36,11 @@ try:
 except NameError:
     pass
 
+# configparser was introduced in 2.7
+if sys.version_info<(2,7,0):
+  sys.stderr.write("You need python 2.7 or later to run crassh\n")
+  exit(1)
+
 """
     Functions
 """

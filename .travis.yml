@@ -1,8 +1,8 @@
 sudo: required
 language: python
-# 2.6 for CentOS, 3.5 for OSX
+# 2.7 for CentOS7, 3.5 for OSX
 python:
-- '2.6'
+- '2.7'
 - '3.5'
 # Secure Environment Variables
 env:
@@ -34,7 +34,7 @@ before_script:
 - ping -c 4 1.1.1.2
 - ping -c 4 1.1.1.6
 # command to run tests (--cisco enables the dynamips tests)
-script: 
+script:
 - py.test --cisco
 - bin/crassh -h
 # Shutdown Dynamips
