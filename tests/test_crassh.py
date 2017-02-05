@@ -109,8 +109,8 @@ def test_readauthfile(tmpdir):
     test_file = tmpdir.mkdir("sub").join("credz.txt")
     f = open(str(test_file), 'a')
     f.write("[crassh] \n")
-    f.write(" username = nick\n")
-    f.write(" password =  pass  \n")
+    f.write("username = nick\n")
+    f.write("password =  pass  \n")
     f.close()
     os.chmod(str(test_file), stat.S_IRUSR | stat.S_IWUSR) # Chmod 600
     username, password = crassh.readauthfile(str(test_file))

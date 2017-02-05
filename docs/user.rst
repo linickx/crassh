@@ -74,23 +74,26 @@ If you want to mix *config* commands with *show* commands then you need to inclu
 Authentication
 --------------
 
-By default crassh will prompt for username and password credentials; ``-U`` can be used to supply a username as a CLI option, ``-P`` can be used to supply a password.   
+By default crassh will prompt for username and password credentials; ``-U`` can be used to supply a username as a CLI option, ``-P`` can be used to supply a password.
 **Please take note that ``-P`` may expose your password in the command line history**
 
- 
+
 crassh will look for and read a ``~/.crasshrc`` file; currently the file supports two colon separated variables ``username`` and ``password``::
 
-    username: nick
-    password: mysecretpass
+    [crassh]
+    username = nick
+    password = mysecretpass
 
 **STORING YOUR PASSWORD IN PLAIN TEXT IN ``~/.crasshrc`` IS A SECURITY RISK** Please appropriately secure your system; crassh will perform a basic file permission check.
+
+*NOTE: if you're using python2.7, beware that the configparser is fussy about whitespace, i.e. you can't have any!*
 
 The ``-A`` option can be used to specify different authentication files, for example ``-A /var/secrets/router_credentials.txt``
 
 Backup Credentials
 ------------------
 
-If the TACACS (ACS) server does not respond or the environment has a mixture of central & local credentials the ``-B`` option can be used to supply a backup username. ``-b`` can be used to supply a backup password and ``-E`` used for a backup enable password. 
+If the TACACS (ACS) server does not respond or the environment has a mixture of central & local credentials the ``-B`` option can be used to supply a backup username. ``-b`` can be used to supply a backup password and ``-E`` used for a backup enable password.
 
 Do no Harm
 ----------
