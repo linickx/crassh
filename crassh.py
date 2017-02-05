@@ -18,8 +18,15 @@ import getopt               # Command line options
 import os                   #
 import stat                 # File system
 import re                   # Regex
+
+try:
+    import configparser         # Configuration File
+except ImportError:
+    import ConfigParser         # Python 2 Compat
+    configparser = ConfigParser
+
 import paramiko             # SSH
-import configparser         # Configuration File
+
 
 # I don't care about long line, deal with it ;)
 # pylint: disable=C0301
