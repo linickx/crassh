@@ -277,14 +277,14 @@ def readauthfile(filepath):
        filepath (str):  Full path to file
 
     Returns:
-       tuple.  ``username`` and ``password``
+       dict.
 
     Example:
 
-    >>> username, password = readauthfile("~/.crasshrc")
-    >>> print(username)
+    >>> crasshrc = readauthfile("~/.crasshrc")
+    >>> print(crasshrc['username'])
     nick
-    >>> print(password)
+    >>> print(crasshrc['password'])
     cisco
 
     """
@@ -305,12 +305,16 @@ def readauthfile(filepath):
     if File_OK:
         cp = configparser.SafeConfigParser()
         cp.read(filepath)
+
+        crasshrc = {} # Setup Dict
+
         if cp.has_section("crassh"):
             if cp.has_option("crassh", "username"):
-                username = cp.get("crassh", "username").strip()
+                crasshrc['username'] = cp.get("crassh", "username").strip()
             if cp.has_option("crassh", "password"):
-                password = cp.get("crassh", "password").strip()
-            return username, password
+                crasshrc['password'] = cp.get("crassh", "password").strip()
+
+            return crasshrc
         else:
             print("Cannot find crassh section in %s " & filepath)
 
@@ -559,7 +563,14 @@ def main():
     # See if we have an Authentication File
     if os.path.isfile(crasshrc) is True:
         try:
-            username, password = readauthfile(crasshrc)
+            crasshrc = readauthfile(crasshrc)
+        except:
+            pass
+
+        # If we have a file, try the uid/pass
+        try: # Separate try for future logging
+            username = crasshrc['username']
+            password = crasshrc['password']
         except:
             pass
 
