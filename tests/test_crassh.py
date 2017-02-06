@@ -113,9 +113,9 @@ def test_readauthfile(tmpdir):
     f.write("password =  pass  \n")
     f.close()
     os.chmod(str(test_file), stat.S_IRUSR | stat.S_IWUSR) # Chmod 600
-    username, password = crassh.readauthfile(str(test_file))
-    assert username == "nick"
-    assert password == "pass"
+    crasshrc = crassh.readauthfile(str(test_file))
+    assert crasshrc['username'] == "nick"
+    assert crasshrc['password'] == "pass"
 
 """
     Tests against a Cisco Switch, router, device, whatever!
