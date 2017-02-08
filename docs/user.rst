@@ -25,14 +25,19 @@ Crassh has a version specific built in help with ``-h``, e.g ::
        -p print the output to the screen [optional | Default: False]"
        -pw is supported, will print the output to screen and write the output to file! [optional]"
        -t set a command timeout in seconds [optional | Default: 60]"
+       -T set a connection timeout in seconds [optional | Default: 10]
        -X disable \"do no harm\" [optional]"
+       -Q disable \"quit on failure\" [optional]"
        -e set an enable password [optional]"
        -d set a delay between commands [optional]"
        -A set an Authentication file for SSH credentials [optional]
        -U set a Username for SSH Authentication [optional]
        -P set a Password for SSH Authentication [optional]
+       -B set a BACKUP Username for SSH Authentication [optional]
+       -b set a BACKUP Password for SSH Authentication [optional]
+       -E set a BACKUP ENABLE Password [optional]
 
-    Version: 1.20
+    Version: 2.6
 
     linickx:crassh nick$
 
@@ -81,7 +86,11 @@ crassh will look for and read a ``~/.crasshrc`` file; currently the file support
 **STORING YOUR PASSWORD IN PLAIN TEXT IN ``~/.crasshrc`` IS A SECURITY RISK** Please appropriately secure your system; crassh will perform a basic file permission check.
 
 The ``-A`` option can be used to specify different authentication files, for example ``-A /var/secrets/router_credentials.txt``
- 
+
+Backup Credentials
+------------------
+
+If the TACACS (ACS) server does not respond or the environment has a mixture of central & local credentials the ``-B`` option can be used to supply a backup username. ``-b`` can be used to supply a backup password and ``-E`` used for a backup enable password. 
 
 Do no Harm
 ----------
@@ -92,6 +101,11 @@ Print Vs Write
 --------------
 
 By default, crassh will write it's output to a file, in the format hostname-YearMonthDate-HourMinuteSecond. If you suppy the ``-p`` option, crassh will output to screen instead. If you want to Print and Write, use ``-pw``
+
+Quit on Failure
+---------------
+
+crassh by default will stop in it's tracks (quit/exit) if there is a connectivity failure to a device, this is to stop invalid credentials hammering a list of devices and potentially locking out TACACS accounts. **BUT** this also means that if there is network error (*i.e. TCP/IP connectivity issue*) then crassh will also stop, the ``-Q`` option can be used to disable `Quit on Failure`
 
 Execution Timeout
 -----------------
