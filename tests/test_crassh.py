@@ -111,11 +111,19 @@ def test_readauthfile(tmpdir):
     f.write("[crassh] \n")
     f.write("username = nick\n")
     f.write("password =  pass  \n")
+    f.write("enable = enable_pass \n")
+    f.write("backup_username = bkup_uid \n")
+    f.write("backup_password = bkup_pw \n")
+    f.write("backup_enable_password = bkup_en\n")
     f.close()
     os.chmod(str(test_file), stat.S_IRUSR | stat.S_IWUSR) # Chmod 600
     crasshrc = crassh.readauthfile(str(test_file))
     assert crasshrc['username'] == "nick"
     assert crasshrc['password'] == "pass"
+    assert crasshrc['enable'] == "enable_pass"
+    assert crasshrc['backup_username'] == "bkup_uid"
+    assert crasshrc['backup_password'] == "bkup_pw"
+    assert crasshrc['backup_enable_password'] == "bkup_en"
 
 """
     Tests against a Cisco Switch, router, device, whatever!

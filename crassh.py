@@ -313,6 +313,14 @@ def readauthfile(filepath):
                 crasshrc['username'] = cp.get("crassh", "username").strip()
             if cp.has_option("crassh", "password"):
                 crasshrc['password'] = cp.get("crassh", "password").strip()
+            if cp.has_option("crassh", "enable"):
+                crasshrc['enable'] = cp.get("crassh", "enable").strip()
+            if cp.has_option("crassh", "backup_username"):
+                crasshrc['backup_username'] = cp.get("crassh", "backup_username").strip()
+            if cp.has_option("crassh", "backup_password"):
+                crasshrc['backup_password'] = cp.get("crassh", "backup_password").strip()
+            if cp.has_option("crassh", "backup_enable_password"):
+                crasshrc['backup_enable_password'] = cp.get("crassh", "backup_enable_password").strip()
 
             return crasshrc
         else:
@@ -571,6 +579,24 @@ def main():
         try: # Separate try for future logging
             username = crasshrc['username']
             password = crasshrc['password']
+        except:
+            pass
+
+        try:
+            enable = crasshrc['enable']
+        except:
+            pass
+
+        try:
+            backup_username = crasshrc['backup_username']
+            backup_password = crasshrc['backup_password']
+            backup_credz = True # We have credz, make it so.
+        except:
+            pass
+
+        try:
+            backup_enable_password = crasshrc['backup_enable_password']
+            backup_enable = True
         except:
             pass
 
