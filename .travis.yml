@@ -12,7 +12,7 @@ before_install:
 - ifconfig -a
 - sudo /sbin/modprobe tun
 - sudo apt-get update -qq
-- sudo apt-get install -qq dynamips
+- sudo apt-get install -qq dynamips netcat
 # install the crassh & dep
 install:
 - pip install .
@@ -27,12 +27,15 @@ before_script:
 - sudo dynamips -i 2 -s 0:0:tap:tap1 -P 3725 -T 2002 --idle-pc=0x607081e0 -C tests/r2.txt c3725-advsecurityk9-mz.124-25c.bin &
 - r2pid=$!
 - echo $r2pid
-- sleep 90
 - sudo ifconfig tap0 inet 1.1.1.1 netmask 255.255.255.252
 - sudo ifconfig tap1 inet 1.1.1.5 netmask 255.255.255.252
 - ifconfig -a
-- ping -c 4 1.1.1.2
-- ping -c 4 1.1.1.6
+# Sleep until the interfaces are up
+- count=0;until ping -c 4 1.1.1.2 || (( count++ >= 15 )); do echo " Ping [$count] sleeping for 2 seconds ";sleep 2; done
+- count=0;until ping -c 4 1.1.1.6 || (( count++ >= 15 )); do echo " Ping [$count] sleeping for 2 seconds ";sleep 2; done
+# Sleep until SSH is up
+- count=0;until nc -z 1.1.1.2 22 || (( count++ >= 30 )); do echo " SSH [$count] sleeping for 2 seconds ";sleep 2; done
+- count=0;until nc -z 1.1.1.6 22 || (( count++ >= 30 )); do echo " SSH [$count] sleeping for 2 seconds ";sleep 2; done
 # command to run tests (--cisco enables the dynamips tests)
 script:
 - py.test --cisco
