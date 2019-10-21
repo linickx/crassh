@@ -1,4 +1,4 @@
-ecdsa==0.13
+ecdsa==0.13.3
 paramiko==2.0.9
 pycrypto==2.6.1
 wheel==0.29.0
